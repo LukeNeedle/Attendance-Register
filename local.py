@@ -795,7 +795,7 @@ def print_main_menu(students=True):
 # Init
 if not os.path.exists("setup.json"):
     with open("setup.json", "w") as f:
-        f.write(str({"database_location": "storage.db","output_folder": "printer"}))
+        json.dump({"database_location": "storage.db","output_folder": "printer"}, fp=f, indent=4)
 with open("setup.json", "r") as f:
     globalVariables = json.loads(f.read())
 
