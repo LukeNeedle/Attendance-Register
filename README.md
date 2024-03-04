@@ -38,5 +38,14 @@ pyinstaller.exe .\local.py --noconfirm --clean --log-level WARN --onefile --hidd
 pyinstaller.exe .\local.py --noconfirm --clean --log-level WARN --onefile --hidden-import babel.numbers --icon "NONE"
 
 ## Working Directory structure
-Static/loadingimage.jpg
-<Executable-File>.exe
+### Initial
+- Static/loadingimage.jpg (Optional)
+- \<Executable-File>.exe
+- setup.json (Optional)
+### Active (After first use)
+- Static/loadingimage.jpg (Optional)
+- printer/
+- Temp/
+- \<Executable-File>.exe
+- setup.json
+- storage.db
