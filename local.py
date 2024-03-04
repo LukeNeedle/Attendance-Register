@@ -122,6 +122,7 @@ def mainOption_Update(studentSelected=None, dateReceived=None, validSessionDurat
         requestDate(label="Create Session")
         with open("Temp/dateReceived.txt", "r") as f:
             lines = f.readlines()
+        os.remove("Temp/dateReceived.txt")
         lines = [line.strip() for line in lines if line.strip()]
         if lines == ["None"]:
             os.system('cls' if os.name=='nt' else 'clear')
@@ -319,6 +320,7 @@ def mainOption_View_Session_Stats_Before(studentID, dateReceived=None):
         requestDate(label="View Sessions before ...")
         with open("Temp/dateReceived.txt", "r") as f:
             lines = f.readlines()
+        os.remove("Temp/dateReceived.txt")
         lines = [line.strip() for line in lines if line.strip()]
         if lines == ["None"]:
             os.system('cls' if os.name=='nt' else 'clear')
@@ -378,6 +380,7 @@ def mainOption_View_Session_Stats_After(studentID, dateReceived=None):
         requestDate(label="View Sessions after ...")
         with open("Temp/dateReceived.txt", "r") as f:
             lines = f.readlines()
+        os.remove("Temp/dateReceived.txt")
         lines = [line.strip() for line in lines if line.strip()]
         if lines == ["None"]:
             os.system('cls' if os.name=='nt' else 'clear')
@@ -437,6 +440,7 @@ def mainOption_View_Session_Stats_Between(studentID, dateReceivedStart=None, dat
         requestDate(label="View Sessions after ...")
         with open("Temp/dateReceived.txt", "r") as f:
             lines = f.readlines()
+        os.remove("Temp/dateReceived.txt")
         lines = [line.strip() for line in lines if line.strip()]
         if lines == ["None"]:
             os.system('cls' if os.name=='nt' else 'clear')
