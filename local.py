@@ -8,6 +8,13 @@ from tkcalendar import Calendar
 import datetime
 from PIL import Image
 from colr import Colr
+import requests
+import re
+import sys
+import ctypes
+
+softwareVersion=(2,0,0)
+setupVersion = 2
 
 sqlite3.register_adapter(bool, int)
 sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
@@ -782,6 +789,23 @@ def print_manage_menu(students=True):
     print("=================================" + colorama.Style.RESET_ALL)
 
 def print_main_menu(students=True):
+    try:
+        if globalVariables['release_key'] == "":
+            headers = {}
+        else:
+            headers = headers = {'Authorization': f"token {globalVariables['release_key']}"}
+        releaseName = requests.get(globalVariables['release_URL'], headers=headers).json()['name']
+    except:
+        input("An error occured, press enter to exit")
+        exit()
+    match = re.fullmatch(r'Release v(\d+)\.(\d+)\.(\d+)', releaseName)
+    menuColourVersion = ""
+    if match:
+        major, minor, patch = map(int, match.groups())
+        if (major, minor, patch) == softwareVersion:
+            menuColourVersion = colorama.Fore.GREEN
+        elif (major, minor, patch) > softwareVersion:
+            menuColourVersion = colorama.Fore.RED
     print(colorama.Style.BRIGHT + "=================================")
     print("||                             ||")
     print("||     Attendence Register     ||")
@@ -792,16 +816,197 @@ def print_main_menu(students=True):
         print("||" + colorama.Style.RESET_ALL + "  \033[9m1) Update student record\033[0m   " + colorama.Style.BRIGHT + "||")
         print("||" + colorama.Style.RESET_ALL + "  \033[9m2) View student record\033[0m     " + colorama.Style.BRIGHT + "||")
     print("||  3) Manage students         ||")
-    print("||  4) Exit                    ||")
+    if menuColourVersion == "":
+        print(f"||  4) Software Info{colorama.Style.RESET_ALL}{colorama.Style.BRIGHT}           ||")
+    else:
+        print(f"||  4) " + menuColourVersion + f"Software Info{colorama.Style.RESET_ALL}{colorama.Style.BRIGHT}           ||")
+        
+    print("||  5) Exit                    ||")
     print("||                             ||")
     print("=================================" + colorama.Style.RESET_ALL)
+
+def update_program(softwareVersion):
+    with open("setup.json", "r") as f:
+        globalVariables = json.loads(f.read())
+    try:
+        if globalVariables['release_key'] == "":
+            headers = {}
+        else:
+            headers = headers = {'Authorization': f"token {globalVariables['release_key']}"}
+        releaseName = requests.get(globalVariables['release_URL'], headers=headers).json()['name']
+    except:
+        input("An error occured, press enter to exit")
+        exit()
+    match = re.fullmatch(r'Release v(\d+)\.(\d+)\.(\d+)', releaseName)
+    if match:
+        major, minor, patch = map(int, match.groups())
+        validGithubRelease = True
+        if (major, minor, patch) == softwareVersion:
+            version_color = colorama.Fore.GREEN
+            update_status = "- Up to date"
+        elif (major, minor, patch) > softwareVersion:
+            version_color = colorama.Fore.RED
+            update_status = "- Update available"
+        else:
+            version_color = colorama.Fore.LIGHTYELLOW_EX
+            update_status = "Beta"
+    else:
+        validGithubRelease = False
+        version_color = colorama.Fore.RED
+        update_status = "- An error occurred"
+        
+        # os.system('cls' if os.name=='nt' else 'clear')
+        
+        
+    print(colorama.Style.BRIGHT + "==========================================================")
+    print("||                                                      ||")
+    print("||                 Software Information                 ||")
+    print(f"||    Current version: {version_color}v{softwareVersion[0]}.{softwareVersion[1]}.{softwareVersion[2]} {update_status}{colorama.Style.RESET_ALL}{colorama.Style.BRIGHT}".ljust(69) + "||")
+    if validGithubRelease:
+        print(f"||    Latest version: {colorama.Fore.GREEN}v{major}.{minor}.{patch}{colorama.Style.RESET_ALL}{colorama.Style.BRIGHT}".ljust(69) + "||")
+    if not validGithubRelease:
+        print(f"||    Latest version: {colorama.Fore.RED}Error connecting to server{colorama.Style.RESET_ALL}".ljust(65) + f"{colorama.Style.BRIGHT}||")
+    print("||                                                      ||")
+    print("==========================================================" + colorama.Style.RESET_ALL)
+        
+    if not (validGithubRelease and (major, minor, patch) > softwareVersion):
+        input("Press enter to continue")
+        os.system('cls' if os.name=='nt' else 'clear')
+        return
+    if major != softwareVersion:
+        print("The latest update has indicated that there has been a major change to it's underlying code which may cause issues,")
+        print("we will try to resolve these issues when the program next starts.")
+    
+    updateRequest = input(f"Would you like to {colorama.Fore.GREEN + colorama.Style.BRIGHT}update{colorama.Fore.RESET + colorama.Style.RESET_ALL} ({colorama.Style.BRIGHT}Y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}): ")
+    if updateRequest.lower() != "y":
+        return
+    os.system('cls' if os.name=='nt' else 'clear')
+    print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Do not close the program. The program will close when it is completed.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+    print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}0/4 | Downloading update...{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+    try:
+        if globalVariables['release_key'] == "":
+            headers = {}
+        else:
+            headers = headers = {'Authorization': f'token {globalVariables['release_key']}'}
+        assets  = requests.get(globalVariables['release_URL'], headers=headers).json()['assets']
+    except:
+        input("An error occured, press enter to exit")
+        exit()
+    for asset in assets:
+        if asset['name'] == f"Attendance-Register-v{major}.{minor}.{patch}-Public.exe" or asset['name'] == f"Attendance-Register-v{major}.{minor}.{patch}-Internal.exe":
+            try:
+                if globalVariables['release_key'] == "":
+                    headers = {}
+                else:
+                    headers = headers = {'Authorization': f"token {globalVariables['release_key']}", 'Accept': "application/octet-stream"}
+                response = requests.get(asset['url'], headers=headers)
+            except:
+                input("An error occured, press enter to exit")
+                exit()
+            if response.status_code == 200 or response.status_code == 302:
+                with open(asset['name'], 'wb') as f:
+                    f.write(response.content)
+                print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}1/4 | Successfully downloaded executable file{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+                if not os.path.exists("Temp/"):
+                    os.mkdir("Temp/")
+                with open("Temp/update.txt", "w") as f:
+                    f.write("1")
+                print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}2/4 | Stored temporary files{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+                
+                print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}3/4 | Updating Desktop Shortcut{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+                shortcutPath = os.path.join(os.path.expanduser("~"), "Desktop", "Attendance Register.lnk")
+                workingDirectory = os.getcwd()
+                shortcutPath = workingDirectory + "\\Attendance Register.lnk"
+                targetPath = workingDirectory + "\\" + asset['name']
+                iconPath = workingDirectory + "\\Static\\icon.ico"
+                if os.path.exists(iconPath):
+                    iconPath = ""
+                
+                if not os.path.exists("Temp"):
+                    os.mkdir("Temp")
+                if os.path.exists("Temp/shortcut_info.json"):
+                    os.remove("Temp/shortcut_info.json")
+                
+                if os.path.exists(shortcutPath):
+                    with open("Temp/shortcut_info.json", "w") as f:
+                        json.dump({
+                            "type": "modify",
+                            "shortcutPath": shortcutPath,
+                            "targetPath": targetPath,
+                            "iconPath": workingDirectory,
+                            "workingDirectory": iconPath
+                            }, fp=f, indent=4)
+                else:
+                    with open("Temp/shortcut_info.json", "w") as f:
+                        json.dump({
+                            "type": "create",
+                            "shortcutPath": shortcutPath,
+                            "targetPath": targetPath,
+                            "iconPath": workingDirectory,
+                            "workingDirectory": iconPath
+                            }, fp=f, indent=4)
+                
+                print("For the desktop shortcut to update, please allow \"desktop_shortcut.exe\" app to make changes to your device")
+                input("The popup will appear when you press enter (it may take a while to appear)")
+                ctypes.windll.shell32.ShellExecuteW(None, "runas", "desktop_shortcut.exe", "", None, 1)
+                while os.path.exists("Temp/shortcut_info.json"):
+                    sleep(1)
+                print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}4/4 | Exiting...{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+                sleep(2)
+                exit()
+            print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}1/4 | Failed to downloaded executable file{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+            print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Aborting update...{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+            break
 
 # Init
 if not os.path.exists("setup.json"):
     with open("setup.json", "w") as f:
-        json.dump({"database_location": "storage.db","output_folder": "printer"}, fp=f, indent=4)
+        json.dump({
+            "version": setupVersion,
+            "database_location": "storage.db",
+            "output_folder": "printer",
+            "release_URL": "https://api.github.com/repos/LukeNeedle/Attendance-Register/releases/latest",
+            "release_key": ""
+            }, fp=f, indent=4)
 with open("setup.json", "r") as f:
     globalVariables = json.loads(f.read())
+
+if os.path.exists("Temp/update.txt"):
+    with open("Temp/update.txt", "r") as f:
+        if f.readline().strip() == "1":
+            updated = True
+        else:
+            updated = False
+else:
+    updated = False
+
+if updated == True:
+    # Delete Old .exe
+    with os.scandir() as entries:
+        for entry in entries:
+            if entry.is_file() and entry.name.startswith("Attendance-Register-v") and entry.name.endswith('.exe') and f"{softwareVersion[0]}.{softwareVersion[1]}.{softwareVersion[2]}" not in entry.name:
+                os.remove(entry.path)
+    
+    # This if statment will grow for every major update that changes setup.json or to the database schema.
+    # It updates setup.json to fully support the latest update
+    
+    # Currently updates to setup v2
+    
+    if 'version' not in globalVariables: # <v2
+        with open("setup.json", "w") as f:
+            json.dump({
+                "version": setupVersion,
+                "database_location": globalVariables['database_location'],
+                "output_folder": globalVariables['output_folder'],
+                "release_URL": "https://api.github.com/repos/LukeNeedle/Attendance-Register/releases/latest",
+                "release_key": ""
+                }, fp=f, indent=4)
+    
+    elif globalVariables['version'] == 2: # =v2
+        # Fully updated already
+        pass
+    
+    os.remove("Temp/update.txt")
 
 colorama.init()
 os.system('cls' if os.name=='nt' else 'clear')
@@ -824,6 +1029,7 @@ if os.path.exists("static/loadingimage.jpg"):
     os.system('cls' if os.name=='nt' else 'clear')
 
 mainLoop = True
+
 while mainLoop:
     if os.path.exists(globalVariables['database_location']):
         # Open database
@@ -862,9 +1068,9 @@ while mainLoop:
     print_main_menu(students)
     while menuRepeat:
         menuSelection = input("What would you like to do? ")
-        if menuSelection in ["1", "2", "3", "4"] and students:
+        if menuSelection in ["1", "2", "3", "4", "5"] and students:
             menuRepeat = False
-        elif menuSelection in ["3", "4"] and not students:
+        elif menuSelection in ["3", "4", "5"] and not students:
             menuRepeat = False
         else:
             print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid option{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
@@ -901,6 +1107,9 @@ while mainLoop:
             mainOption_Manage_Delete()
         else:
             os.system('cls' if os.name=='nt' else 'clear')
+    elif menuSelection == 4:
+        update_program(softwareVersion)
+        os.system('cls' if os.name=='nt' else 'clear')
     else:
         os.system('cls' if os.name=='nt' else 'clear')
         mainLoop = False
