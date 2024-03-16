@@ -802,8 +802,6 @@ def print_main_menu(students=True):
     menuColourVersion = ""
     if match:
         major, minor, patch = map(int, match.groups())
-        print(major, minor, patch)
-        print(match.groups())
         if (major, minor, patch) == softwareVersion:
             menuColourVersion = colorama.Fore.GREEN
         elif (major, minor, patch) > softwareVersion:
