@@ -802,6 +802,8 @@ def print_main_menu(students=True):
     menuColourVersion = ""
     if match:
         major, minor, patch = map(int, match.groups())
+        print(major, minor, patch)
+        print(match.groups())
         if (major, minor, patch) == softwareVersion:
             menuColourVersion = colorama.Fore.GREEN
         elif (major, minor, patch) > softwareVersion:
@@ -916,7 +918,6 @@ def update_program(softwareVersion):
                 print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}3/4 | Updating Desktop Shortcut{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
                 shortcutPath = os.path.join(os.path.expanduser("~"), "Desktop", "Attendance Register.lnk")
                 workingDirectory = os.getcwd()
-                shortcutPath = workingDirectory + "\\Attendance Register.lnk"
                 targetPath = workingDirectory + "\\" + asset['name']
                 iconPath = workingDirectory + "\\Static\\icon.ico"
                 if os.path.exists(iconPath):
