@@ -102,27 +102,34 @@ def mainOption_Update(studentSelected=None, dateReceived=None, validSessionDurat
     
     if studentSelected == None:
         print("Students:")
+        studentsInitials = []
         for student in result:
+            studentsInitials.append(student[1])
             print(f"{colorama.Style.BRIGHT}{result.index(student)+1}{colorama.Style.RESET_ALL} | {student[1]}")
         
-        studentSelectID = input("ID of the student: ")
-        try:
-            validStudentSelectID = int(studentSelectID)
-        except ValueError:
-            os.system('cls' if os.name=='nt' else 'clear')
-            print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter an integer.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-            cursor.close()
-            connection.close()
-            return mainOption_Update()
-        
-        if validStudentSelectID < 1 or validStudentSelectID > len(result):
-            os.system('cls' if os.name=='nt' else 'clear')
-            print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter an integer between 1 and {len(result)}{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-            cursor.close()
-            connection.close()
-            return mainOption_Update()
+        studentSelectID = input("ID/initials of the student: ")
+        if studentSelectID in studentsInitials:
+            studentSelected = result[studentsInitials.index(studentSelectID)]
+        else:
+            try:
+                validStudentSelectID = int(studentSelectID)
+            except ValueError:
+                os.system('cls' if os.name=='nt' else 'clear')
+                print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter an integer.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+                cursor.close()
+                connection.close()
+                return mainOption_View()
+            
+            if validStudentSelectID < 1 or validStudentSelectID > len(result):
+                os.system('cls' if os.name=='nt' else 'clear')
+                print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter an integer between 1 and {len(result)}{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+                cursor.close()
+                connection.close()
+                return mainOption_View()
 
-        studentSelected = result[validStudentSelectID-1]
+            studentSelected = result[validStudentSelectID-1]
+    
+    print(f"Selected Student: {studentSelected[1]}")
     
     if dateReceived == None:
         requestDate(label="Create Session")
@@ -224,30 +231,36 @@ def mainOption_View(studentSelected=None):
     
     if studentSelected == None:
         print("Students:")
+        studentsInitials = []
         for student in result:
+            studentsInitials.append(student[1])
             print(f"{colorama.Style.BRIGHT}{result.index(student)+1}{colorama.Style.RESET_ALL} | {student[1]}")
         
-        studentSelectID = input("ID of the student: ")
-        try:
-            validStudentSelectID = int(studentSelectID)
-        except ValueError:
-            os.system('cls' if os.name=='nt' else 'clear')
-            print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter an integer.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-            cursor.close()
-            connection.close()
-            return mainOption_View()
-        
-        if validStudentSelectID < 1 or validStudentSelectID > len(result):
-            os.system('cls' if os.name=='nt' else 'clear')
-            print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter an integer between 1 and {len(result)}{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-            cursor.close()
-            connection.close()
-            return mainOption_View()
+        studentSelectID = input("ID/initials of the student: ")
+        if studentSelectID in studentsInitials:
+            studentSelected = result[studentsInitials.index(studentSelectID)]
+        else:
+            try:
+                validStudentSelectID = int(studentSelectID)
+            except ValueError:
+                os.system('cls' if os.name=='nt' else 'clear')
+                print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter an integer.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+                cursor.close()
+                connection.close()
+                return mainOption_View()
+            
+            if validStudentSelectID < 1 or validStudentSelectID > len(result):
+                os.system('cls' if os.name=='nt' else 'clear')
+                print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter an integer between 1 and {len(result)}{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+                cursor.close()
+                connection.close()
+                return mainOption_View()
 
-        studentSelected = result[validStudentSelectID-1]
+            studentSelected = result[validStudentSelectID-1]
     
     os.system('cls' if os.name=='nt' else 'clear')
     print_view_menu()
+    print(f"Selected Student: {studentSelected[1]}")
     menuSelection = input("What would you like to do? ")
     if menuSelection not in ["1", "2", "3", "4", "5", "6"]:
         print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid option{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
