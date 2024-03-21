@@ -13,7 +13,7 @@ import re
 import sys
 import ctypes
 
-softwareVersion=(2,0,0)
+softwareVersion=(2,0,1)
 setupVersion = 2
 
 sqlite3.register_adapter(bool, int)
