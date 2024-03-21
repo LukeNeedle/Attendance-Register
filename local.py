@@ -1114,6 +1114,7 @@ while mainLoop:
         else:
             os.system('cls' if os.name=='nt' else 'clear')
     elif menuSelection == 4:
+        os.system('cls' if os.name=='nt' else 'clear')
         update_program(softwareVersion)
         os.system('cls' if os.name=='nt' else 'clear')
     else:
