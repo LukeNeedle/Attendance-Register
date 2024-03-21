@@ -251,6 +251,7 @@ def mainOption_View(studentSelected=None):
     menuSelection = input("What would you like to do? ")
     if menuSelection not in ["1", "2", "3", "4", "5", "6"]:
         print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid option{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+        sleep(1)
         mainOption_View(studentSelected)
     
     menuSelection = int(menuSelection)
@@ -1098,6 +1099,7 @@ while mainLoop:
                 manageMenuRepeat = False
             else:
                 print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid option{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+                sleep(1)
 
         manageMenuRepeat = int(menuSelection)
         if manageMenuRepeat == 1:
