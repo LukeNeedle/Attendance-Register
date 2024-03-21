@@ -10,7 +10,6 @@ from PIL import Image
 from colr import Colr
 import requests
 import re
-import sys
 import ctypes
 
 softwareVersion=(2,0,1)
