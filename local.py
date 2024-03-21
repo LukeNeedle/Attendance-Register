@@ -759,71 +759,6 @@ def mainOption_Manage_Delete(studentSelected=None):
     connection.close()
     return True
 
-def print_view_menu():
-    print(colorama.Style.BRIGHT + "=================================")
-    print("||                             ||")
-    print("||     View Student Record     ||")
-    print("||  1) Session Stats           ||")
-    print("||  2) % Before Date           ||")
-    print("||  3) % After Date            ||")
-    print("||  4) % Between Dates         ||")
-    print("||  5) Print Data              ||")
-    print("||  6) Back to main menu       ||")
-    print("||                             ||")
-    print("=================================" + colorama.Style.RESET_ALL)
-
-def print_manage_menu(students=True):
-    print(colorama.Style.BRIGHT + "=================================")
-    print("||                             ||")
-    print("||       Manage Students       ||")
-    print("||  1) Create student          ||")
-    if students:
-        print("||  2) Edit student            ||")
-        print("||  3) Delete students         ||")
-    else:
-        print("||" + colorama.Style.RESET_ALL + "  \033[9m2) Edit student\033[0m            " + colorama.Style.BRIGHT + "||")
-        print("||" + colorama.Style.RESET_ALL + "  \033[9m3) Delete students\033[0m         " + colorama.Style.BRIGHT + "||")
-    print("||  4) Back to main menu       ||")
-    print("||                             ||")
-    print("=================================" + colorama.Style.RESET_ALL)
-
-def print_main_menu(students=True):
-    try:
-        if globalVariables['release_key'] == "":
-            headers = {}
-        else:
-            headers = headers = {'Authorization': f"token {globalVariables['release_key']}"}
-        releaseName = requests.get(globalVariables['release_URL'], headers=headers).json()['name']
-    except:
-        input("An error occured, press enter to exit")
-        exit()
-    match = re.fullmatch(r'Release v(\d+)\.(\d+)\.(\d+)', releaseName)
-    menuColourVersion = ""
-    if match:
-        major, minor, patch = map(int, match.groups())
-        if (major, minor, patch) == softwareVersion:
-            menuColourVersion = colorama.Fore.GREEN
-        elif (major, minor, patch) > softwareVersion:
-            menuColourVersion = colorama.Fore.RED
-    print(colorama.Style.BRIGHT + "=================================")
-    print("||                             ||")
-    print("||     Attendence Register     ||")
-    if students:
-        print("||  1) Update student record   ||")
-        print("||  2) View student record     ||")
-    else:
-        print("||" + colorama.Style.RESET_ALL + "  \033[9m1) Update student record\033[0m   " + colorama.Style.BRIGHT + "||")
-        print("||" + colorama.Style.RESET_ALL + "  \033[9m2) View student record\033[0m     " + colorama.Style.BRIGHT + "||")
-    print("||  3) Manage students         ||")
-    if menuColourVersion == "":
-        print(f"||  4) Software Info{colorama.Style.RESET_ALL}{colorama.Style.BRIGHT}           ||")
-    else:
-        print(f"||  4) " + menuColourVersion + f"Software Info{colorama.Style.RESET_ALL}{colorama.Style.BRIGHT}           ||")
-        
-    print("||  5) Exit                    ||")
-    print("||                             ||")
-    print("=================================" + colorama.Style.RESET_ALL)
-
 def update_program(softwareVersion):
     with open("setup.json", "r") as f:
         globalVariables = json.loads(f.read())
@@ -955,6 +890,77 @@ def update_program(softwareVersion):
             print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}1/4 | Failed to downloaded executable file{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
             print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Aborting update...{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
             break
+
+def print_view_menu():
+    print(colorama.Style.BRIGHT + "=================================")
+    print("||                             ||")
+    print("||     View Student Record     ||")
+    print("||  1) Session Stats           ||")
+    print("||  2) % Before Date           ||")
+    print("||  3) % After Date            ||")
+    print("||  4) % Between Dates         ||")
+    print("||  5) Print Data              ||")
+    print("||  6) Back to main menu       ||")
+    print("||                             ||")
+    print("=================================" + colorama.Style.RESET_ALL)
+
+def print_manage_menu(students=True):
+    print(colorama.Style.BRIGHT + "=================================")
+    print("||                             ||")
+    print("||       Manage Students       ||")
+    print("||  1) Create student          ||")
+    if students:
+        print("||  2) Edit student            ||")
+        print("||  3) Delete students         ||")
+    else:
+        print("||" + colorama.Style.RESET_ALL + "  \033[9m2) Edit student\033[0m            " + colorama.Style.BRIGHT + "||")
+        print("||" + colorama.Style.RESET_ALL + "  \033[9m3) Delete students\033[0m         " + colorama.Style.BRIGHT + "||")
+    print("||  4) Back to main menu       ||")
+    print("||                             ||")
+    print("=================================" + colorama.Style.RESET_ALL)
+
+def print_main_menu(students=True):
+    try:
+        if globalVariables['release_key'] == "":
+            headers = {}
+        else:
+            headers = headers = {'Authorization': f"token {globalVariables['release_key']}"}
+        releaseName = requests.get(globalVariables['release_URL'], headers=headers).json()['name']
+    except:
+        input("An error occured, press enter to exit")
+        exit()
+    
+    match = re.fullmatch(r'Release v(\d+)\.(\d+)\.(\d+)', releaseName)
+    menuColourVersion = ""
+    if match:
+        try:
+            major, minor, patch = map(int, match.groups())
+            if (major, minor, patch) == softwareVersion:
+                menuColourVersion = colorama.Fore.GREEN
+            elif (major, minor, patch) > softwareVersion:
+                menuColourVersion = colorama.Fore.RED
+        except:
+            pass
+    
+    print(colorama.Style.BRIGHT + "=================================")
+    print("||                             ||")
+    print("||     Attendence Register     ||")
+    if students:
+        print("||  1) Update student record   ||")
+        print("||  2) View student record     ||")
+    else:
+        print("||" + colorama.Style.RESET_ALL + "  \033[9m1) Update student record\033[0m   " + colorama.Style.BRIGHT + "||")
+        print("||" + colorama.Style.RESET_ALL + "  \033[9m2) View student record\033[0m     " + colorama.Style.BRIGHT + "||")
+    print("||  3) Manage students         ||")
+    if menuColourVersion == "":
+        print(f"||  4) Software Info{colorama.Style.RESET_ALL}{colorama.Style.BRIGHT}           ||")
+    else:
+        print(f"||  4) " + menuColourVersion + f"Software Info{colorama.Style.RESET_ALL}{colorama.Style.BRIGHT}           ||")
+        
+    print("||  5) Exit                    ||")
+    print("||                             ||")
+    print("=================================" + colorama.Style.RESET_ALL)
+
 
 # Init
 if not os.path.exists("setup.json"):
