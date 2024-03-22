@@ -892,8 +892,8 @@ def update_program(softwareVersion):
                             "type": "modify",
                             "shortcutPath": shortcutPath,
                             "targetPath": targetPath,
-                            "iconPath": workingDirectory,
-                            "workingDirectory": iconPath
+                            "iconPath": iconPath,
+                            "workingDirectory": workingDirectory
                             }, fp=f, indent=4)
                 else:
                     with open((tempDir + "shortcut_info.json"), "w") as f:
@@ -901,8 +901,8 @@ def update_program(softwareVersion):
                             "type": "create",
                             "shortcutPath": shortcutPath,
                             "targetPath": targetPath,
-                            "iconPath": workingDirectory,
-                            "workingDirectory": iconPath
+                            "iconPath": iconPath,
+                            "workingDirectory": workingDirectory
                             }, fp=f, indent=4)
                 
                 print("For the desktop shortcut to update, please allow \"desktop_shortcut.exe\" app to make changes to your device")
