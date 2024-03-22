@@ -866,16 +866,24 @@ def update_program(softwareVersion):
                 workingDirectory = os.getcwd()
                 targetPath = workingDirectory + "\\" + asset['name']
                 iconPath = workingDirectory + "\\Static\\icon.ico"
-                if os.path.exists(iconPath):
+                if not os.path.exists(iconPath):
                     iconPath = ""
                 
-                if not os.path.exists("Temp"):
-                    os.mkdir("Temp")
-                if os.path.exists("Temp/shortcut_info.json"):
-                    os.remove("Temp/shortcut_info.json")
+                tempDir = (os.environ.get('TMPDIR') or os.environ.get('TEMP') or os.environ.get('TMP'))
+                
+                if tempDir:
+                    if not os.path.exists(tempDir):
+                        os.mkdir(tempDir)
+                    tempDir += "/Attendance_Register/"
+                
+                if not os.path.exists(tempDir):
+                    os.mkdir(tempDir)
+                
+                if os.path.exists((tempDir + "shortcut_info.json")):
+                    os.remove((tempDir + "shortcut_info.json"))
                 
                 if os.path.exists(shortcutPath):
-                    with open("Temp/shortcut_info.json", "w") as f:
+                    with open((tempDir + "shortcut_info.json"), "w") as f:
                         json.dump({
                             "type": "modify",
                             "shortcutPath": shortcutPath,
@@ -884,7 +892,7 @@ def update_program(softwareVersion):
                             "workingDirectory": iconPath
                             }, fp=f, indent=4)
                 else:
-                    with open("Temp/shortcut_info.json", "w") as f:
+                    with open((tempDir + "shortcut_info.json"), "w") as f:
                         json.dump({
                             "type": "create",
                             "shortcutPath": shortcutPath,
@@ -896,7 +904,7 @@ def update_program(softwareVersion):
                 print("For the desktop shortcut to update, please allow \"desktop_shortcut.exe\" app to make changes to your device")
                 input("The popup will appear when you press enter (it may take a while to appear)")
                 ctypes.windll.shell32.ShellExecuteW(None, "runas", "desktop_shortcut.exe", "", None, 1)
-                while os.path.exists("Temp/shortcut_info.json"):
+                while os.path.exists((tempDir + "shortcut_info.json")):
                     sleep(1)
                 print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}4/4 | Exiting...{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
                 sleep(2)
