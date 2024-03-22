@@ -592,7 +592,10 @@ def mainOption_View_Print_Data(studentID):
         f.write(tableData)
 
     print(f"Student data saved to {filePath}")
-    input(f"Press {colorama.Style.BRIGHT}enter{colorama.Style.RESET_ALL} to continue.")
+    openFile = input(f"Would you like to open the file? ({colorama.Style.BRIGHT}Y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}): ")
+    if openFile.lower() == "y":
+        os.system("notepad.exe " + filePath)
+    
     os.system('cls' if os.name=='nt' else 'clear')
     cursor.close()
     connection.close() 
