@@ -828,6 +828,7 @@ def update_program(softwareVersion):
     updateRequest = input(f"Would you like to {colorama.Fore.GREEN + colorama.Style.BRIGHT}update{colorama.Fore.RESET + colorama.Style.RESET_ALL} ({colorama.Style.BRIGHT}Y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}): ")
     if updateRequest.lower() != "y":
         return
+
     os.system('cls' if os.name=='nt' else 'clear')
     print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Do not close the program. The program will close when it is completed.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
     print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}0/4 | Downloading update...{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
@@ -912,6 +913,8 @@ def update_program(softwareVersion):
             print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}1/4 | Failed to downloaded executable file{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
             print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Aborting update...{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
             break
+
+
 
 def print_view_menu():
     print(colorama.Style.BRIGHT + "=================================")
@@ -1032,6 +1035,34 @@ if updated == True:
         # Fully updated already
         pass
     
+    # Downloads latest version of desktop_shortcut.exe
+    try:
+        if globalVariables['release_key'] == "":
+            headers = {}
+        else:
+            headers = headers = {'Authorization': f'token {globalVariables['release_key']}'}
+        assets  = requests.get(globalVariables['release_URL'], headers=headers).json()['assets']
+    except:
+        input(f"An error occured, press enter to exit (Code: DskSrtCtDwnld1, Version: {softwareVersion})")
+        exit()
+    for asset in assets:
+        if asset['name'] == "desktop_shortcut.exe":
+            try:
+                if globalVariables['release_key'] == "":
+                    headers = {}
+                else:
+                    headers = headers = {'Authorization': f"token {globalVariables['release_key']}", 'Accept': "application/octet-stream"}
+                response = requests.get(asset['url'], headers=headers)
+            except:
+                input(f"An error occured, press enter to exit (Code: DskSrtCtDwnld2, Version: {softwareVersion})")
+                exit()
+            if response.status_code == 200 or response.status_code == 302:
+                with open(asset['name'], 'wb') as f:
+                    f.write(response.content)
+                break
+            input(f"An error occured, press enter to exit (Code: DskSrtCtDwnld2, Version: {softwareVersion})")
+            exit()
+
     os.remove("Temp/update.txt")
 
 colorama.init()
