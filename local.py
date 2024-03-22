@@ -821,7 +821,7 @@ def update_program(softwareVersion):
         input("Press enter to continue")
         os.system('cls' if os.name=='nt' else 'clear')
         return
-    if major != softwareVersion:
+    if major != softwareVersion[0]:
         print("The latest update has indicated that there has been a major change to it's underlying code which may cause issues,")
         print("we will try to resolve these issues when the program next starts.")
     
