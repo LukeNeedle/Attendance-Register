@@ -177,7 +177,7 @@ def mainOption_Update(studentSelected=None, dateReceived=None, validSessionDurat
             connection.close()
             return mainOption_Update(studentSelected=studentSelected, dateReceived=dateReceived, validSessionDuration=validSessionDuration)
         
-        if validSessionDurationAttended <= 0 or validSessionDurationAttended > 24:
+        if validSessionDurationAttended < 0 or validSessionDurationAttended > 24:
             os.system('cls' if os.name=='nt' else 'clear')
             print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter a number between 0 and 23 and lower than the session duration ({validSessionDuration}).{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
             cursor.close()
