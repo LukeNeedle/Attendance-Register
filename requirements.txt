@@ -5,7 +5,7 @@ charset-normalizer==3.3.2
 colorama==0.4.6
 Colr==0.9.1
 darkdetect==0.8.0
-idna==3.6
+idna==3.7
 kdtree==0.16
 packaging==23.2
 pefile==2023.2.7
