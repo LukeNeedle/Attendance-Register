@@ -848,7 +848,7 @@ def update_program(softwareVersion):
         if asset['name'] == f"Attendance-Register-v{major}.{minor}.{patch}-Public.exe" or asset['name'] == f"Attendance-Register-v{major}.{minor}.{patch}-Internal.exe":
             try:
                 if globalVariables['release_key'] == "":
-                    headers = {}
+                    headers = {'Accept': "application/octet-stream"}
                 else:
                     headers = headers = {'Authorization': f"token {globalVariables['release_key']}", 'Accept': "application/octet-stream"}
                 response = requests.get(asset['url'], headers=headers)
@@ -1052,7 +1052,7 @@ if updated == True:
         if asset['name'] == "desktop_shortcut.exe":
             try:
                 if globalVariables['release_key'] == "":
-                    headers = {}
+                    headers = {'Accept': "application/octet-stream"}
                 else:
                     headers = headers = {'Authorization': f"token {globalVariables['release_key']}", 'Accept': "application/octet-stream"}
                 response = requests.get(asset['url'], headers=headers)
