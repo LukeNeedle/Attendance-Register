@@ -246,7 +246,7 @@ def mainOption_Update(studentSelected=None, dateReceived=None, validSessionDurat
     print(f"Duration of Session attended: {validSessionDurationAttended}")
     print("="*40)
     
-    confirmation = input(f"Is this ok? ({colorama.Style.BRIGHT}Y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}) ").lower()
+    confirmation = input(f"Is this ok? ({colorama.Style.BRIGHT}y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}) ").lower()
     if confirmation == "y":
         cursor.execute("INSERT INTO Attendance(StudentID, Timestamp, Duration, AmountAttended) VALUES (?,?,?,?);", (studentSelected[0], dateReceived, validSessionDuration, validSessionDurationAttended))
         connection.commit()
@@ -639,7 +639,7 @@ def mainOption_View_Print_Data(studentID):
         f.write(tableData)
 
     print(f"Student data saved to {filePath}")
-    openFile = input(f"Would you like to open the file? ({colorama.Style.BRIGHT}Y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}): ")
+    openFile = input(f"Would you like to open the file? ({colorama.Style.BRIGHT}y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}): ")
     if openFile.lower() == "y":
         os.system("notepad.exe " + filePath)
     
@@ -672,7 +672,7 @@ def mainOption_Manage_Create(students:bool):
         cursor.execute("SELECT StudentID FROM Students WHERE Initials=?;", (initials, ))
         if cursor.fetchone() != None:
             print(f"{colorama.Fore.YELLOW + colorama.Style.BRIGHT}These initials are already in use.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-            deleteRequest = input(f"Would you like to {colorama.Fore.RED + colorama.Style.BRIGHT}overwrite{colorama.Fore.RESET + colorama.Style.RESET_ALL} the other student ({colorama.Style.BRIGHT}Y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}): ")
+            deleteRequest = input(f"Would you like to {colorama.Fore.RED + colorama.Style.BRIGHT}overwrite{colorama.Fore.RESET + colorama.Style.RESET_ALL} the other student ({colorama.Style.BRIGHT}y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}): ")
             if deleteRequest.lower() == "y":
                 cursor.execute("DELETE FROM Students WHERE Initials=?;", (initials, ))
                 connection.commit()
@@ -745,7 +745,7 @@ def mainOption_Manage_Edit(studentSelected=None):
     cursor.execute("SELECT StudentID FROM Students WHERE Initials=?;", (newInitials, ))
     if cursor.fetchone() != None:
         print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}These initials are already in use.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-        deleteRequest = input(f"Would you like to {colorama.Fore.RED + colorama.Style.BRIGHT}overwrite{colorama.Fore.RESET + colorama.Style.RESET_ALL} the other student ({colorama.Style.BRIGHT}Y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}): ")
+        deleteRequest = input(f"Would you like to {colorama.Fore.RED + colorama.Style.BRIGHT}overwrite{colorama.Fore.RESET + colorama.Style.RESET_ALL} the other student ({colorama.Style.BRIGHT}y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}): ")
         if deleteRequest.lower() == "y":
             cursor.execute("DELETE FROM Students WHERE Initials=?;", (newInitials, ))
             connection.commit()
@@ -801,7 +801,7 @@ def mainOption_Manage_Delete(studentSelected=None):
 
         studentSelected = result[validStudentSelectID-1]
     
-    deleteRequest = input(f"Would you like to {colorama.Fore.RED + colorama.Style.BRIGHT}PERMANENTLY DELETE{colorama.Fore.RESET + colorama.Style.RESET_ALL} this student ({studentSelected[1]}) ({colorama.Style.BRIGHT}Y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}): ")
+    deleteRequest = input(f"Would you like to {colorama.Fore.RED + colorama.Style.BRIGHT}PERMANENTLY DELETE{colorama.Fore.RESET + colorama.Style.RESET_ALL} this student ({studentSelected[1]}) ({colorama.Style.BRIGHT}y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}): ")
     if deleteRequest.lower() == "y":
         cursor.execute("DELETE FROM Students WHERE StudentID=?;", (studentSelected[0], ))
         connection.commit()
@@ -903,7 +903,7 @@ def update_program(softwareVersion):
         print("The latest update has indicated that there has been a major change to it's underlying code which may cause issues,")
         print("we will try to resolve these issues when the program next starts.")
     
-    updateRequest = input(f"Would you like to {colorama.Fore.GREEN + colorama.Style.BRIGHT}update{colorama.Fore.RESET + colorama.Style.RESET_ALL} ({colorama.Style.BRIGHT}Y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}): ")
+    updateRequest = input(f"Would you like to {colorama.Fore.GREEN + colorama.Style.BRIGHT}update{colorama.Fore.RESET + colorama.Style.RESET_ALL} ({colorama.Style.BRIGHT}y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}): ")
     if updateRequest.lower() != "y":
         return
 
