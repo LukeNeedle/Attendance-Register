@@ -115,7 +115,7 @@ def requestDate(label):
     
     Label(root, text=label).pack()
     
-    cal = Calendar(root, selectmode='day', year=2024, month=3, day=1)
+    cal = Calendar(root, selectmode='day', year=datetime.datetime.now().year, month=datetime.datetime.now().month, day=datetime.datetime.now().day)
     cal.pack(pady=5)
     
     time_frame = Frame(root)
@@ -125,8 +125,21 @@ def requestDate(label):
     
     hour_var = StringVar(root)
     minute_var = StringVar(root)
-    hour_var.set("00")
-    minute_var.set("00")
+    defaultHour = datetime.datetime.now().time().hour
+    defaultMinute = datetime.datetime.now().time().minute
+
+    if defaultHour < 10:
+        defaultHour = f"0{str(defaultHour)}"
+    else:
+        defaultHour = str(defaultHour)
+
+    if defaultMinute < 10:
+        defaultMinute = f"0{str(defaultMinute)}"
+    else:
+        defaultMinute = str(defaultMinute)
+    
+    hour_var.set(defaultHour)
+    minute_var.set(defaultMinute)
 
     hour_sb = Spinbox(time_frame, from_=0, to=23, textvariable=hour_var, width=2, format="%02.0f")
     minute_sb = Spinbox(time_frame, from_=0, to=59, textvariable=minute_var, width=2, format="%02.0f")
