@@ -3,5 +3,6 @@
     "database_location": "storage.db",
     "output_folder": "printer",
     "release_URL": "https://api.github.com/repos/LukeNeedle/Attendance-Register/releases/latest",
-    "release_key": ""
+    "release_key": "",
+    "API": true
 }

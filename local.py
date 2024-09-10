@@ -12,14 +12,61 @@ import requests
 import re
 import ctypes
 
-softwareVersion=(2,0,3)
-setupVersion = 2
+softwareVersion=(2,0,4)
+setupVersion = 3
+APILimit = False
 
 sqlite3.register_adapter(bool, int)
 sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
 
 sqlite3.register_adapter(datetime.datetime, lambda x: x.isoformat())
 sqlite3.register_converter("TIMESTAMP", lambda x: datetime.datetime.fromisoformat(x.decode()))
+
+def download_desktop_shortcut(softwareVersion, globalVariables):
+    global APILimit
+    global APIDisabled
+    
+    if APIDisabled:
+        print("API is disabled, please edit your setup.json to enable it.")
+        return
+    
+    try:
+        if globalVariables['release_key'] == "":
+            headers = {}
+        else:
+            headers = headers = {'Authorization': f'token {globalVariables['release_key']}'}
+
+        if not APILimit:
+            assetsData = requests.get(globalVariables['release_URL'], headers=headers).json()
+            assets = assetsData['assets']
+    except:
+        if "API rate limit exceeded" not in assetsData['message']:
+            input("An error occured, press enter to exit")
+            exit()
+        print("API rate limit exceeded")
+        APILimit = True
+    for asset in assets:
+        if asset['name'] == "desktop_shortcut.exe":
+            try:
+                if globalVariables['release_key'] == "":
+                    headers = {'Accept': "application/octet-stream"}
+                else:
+                    headers = headers = {'Authorization': f"token {globalVariables['release_key']}", 'Accept': "application/octet-stream"}
+                
+                if not APILimit:
+                    response = requests.get(asset['url'], headers=headers)
+            except:
+                if "API rate limit exceeded" not in response['message']:
+                    input("An error occured, press enter to exit")
+                    exit()
+                print("API rate limit exceeded")
+                APILimit = True
+            if response.status_code == 200 or response.status_code == 302:
+                with open(asset['name'], 'wb') as f:
+                    f.write(response.content)
+                break
+            input(f"An error occured, press enter to exit (Code: DskSrtCtDwnld2, Version: {softwareVersion})")
+            exit()
 
 def get_date():
     global dateReceived
@@ -177,7 +224,7 @@ def mainOption_Update(studentSelected=None, dateReceived=None, validSessionDurat
             connection.close()
             return mainOption_Update(studentSelected=studentSelected, dateReceived=dateReceived, validSessionDuration=validSessionDuration)
         
-        if validSessionDurationAttended <= 0 or validSessionDurationAttended > 24:
+        if validSessionDurationAttended < 0 or validSessionDurationAttended > 24:
             os.system('cls' if os.name=='nt' else 'clear')
             print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter a number between 0 and 23 and lower than the session duration ({validSessionDuration}).{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
             cursor.close()
@@ -777,6 +824,14 @@ def mainOption_Manage_Delete(studentSelected=None):
     return True
 
 def update_program(softwareVersion):
+    global APILimit
+    global APIDisabled
+    
+    if APIDisabled:
+        print("API is disabled, please edit your setup.json to enable it.")
+    
+    validGithubRelease = True
+    
     with open("setup.json", "r") as f:
         globalVariables = json.loads(f.read())
     try:
@@ -784,31 +839,51 @@ def update_program(softwareVersion):
             headers = {}
         else:
             headers = headers = {'Authorization': f"token {globalVariables['release_key']}"}
-        releaseName = requests.get(globalVariables['release_URL'], headers=headers).json()['name']
-    except:
-        input("An error occured, press enter to exit")
-        exit()
-    match = re.fullmatch(r'Release v(\d+)\.(\d+)\.(\d+)', releaseName)
-    if match:
-        major, minor, patch = map(int, match.groups())
-        validGithubRelease = True
-        if (major, minor, patch) == softwareVersion:
-            version_color = colorama.Fore.GREEN
-            update_status = "- Up to date"
-        elif (major, minor, patch) > softwareVersion:
-            version_color = colorama.Fore.RED
-            update_status = "- Update available"
+        
+        if not APILimit and not APIDisabled:
+            releaseData = requests.get(globalVariables['release_URL'], headers=headers).json()
+            releaseName = releaseData['name']
         else:
-            version_color = colorama.Fore.LIGHTYELLOW_EX
-            update_status = "Beta"
-    else:
+            validGithubRelease = False
+    except:
+        if "API rate limit exceeded" not in releaseData['message']:
+            input("An error occured, press enter to exit")
+            exit()
+        print("API rate limit exceeded")
+        APILimit = True
         validGithubRelease = False
+    
+    if validGithubRelease:
+        match = re.fullmatch(r'Release v(\d+)\.(\d+)\.(\d+)', releaseName)
+        if match:
+            major, minor, patch = map(int, match.groups())
+            validGithubRelease = True
+            if (major, minor, patch) == softwareVersion:
+                version_color = colorama.Fore.GREEN
+                update_status = "- Up to date"
+            elif (major, minor, patch) > softwareVersion:
+                version_color = colorama.Fore.RED
+                update_status = "- Update available"
+            else:
+                version_color = colorama.Fore.LIGHTYELLOW_EX
+                update_status = "Beta"
+        else:
+            validGithubRelease = False
+            version_color = colorama.Fore.RED
+            update_status = "- An error occurred"
+            
+            # os.system('cls' if os.name=='nt' else 'clear')
+    
+    if APILimit:
         version_color = colorama.Fore.RED
-        update_status = "- An error occurred"
-        
-        # os.system('cls' if os.name=='nt' else 'clear')
-        
-        
+        update_status = "- API limit reached"
+        validGithubRelease = False
+    
+    if APIDisabled:
+        version_color = ""
+        update_status = "- API disabled"
+        validGithubRelease = False
+    
     print(colorama.Style.BRIGHT + "==========================================================")
     print("||                                                      ||")
     print("||                 Software Information                 ||")
@@ -820,7 +895,7 @@ def update_program(softwareVersion):
     print("||                                                      ||")
     print("==========================================================" + colorama.Style.RESET_ALL)
         
-    if not (validGithubRelease and (major, minor, patch) > softwareVersion):
+    if (not (validGithubRelease and (major, minor, patch) > softwareVersion) or APIDisabled):
         input("Press enter to continue")
         os.system('cls' if os.name=='nt' else 'clear')
         return
@@ -950,27 +1025,36 @@ def print_manage_menu(students=True):
     print("=================================" + colorama.Style.RESET_ALL)
 
 def print_main_menu(students=True):
+    global APILimit
+    global APIDisabled
+    
     try:
         if globalVariables['release_key'] == "":
             headers = {}
         else:
             headers = headers = {'Authorization': f"token {globalVariables['release_key']}"}
-        releaseName = requests.get(globalVariables['release_URL'], headers=headers).json()['name']
+        if not APILimit:
+            releaseData = requests.get(globalVariables['release_URL'], headers=headers).json()
+            releaseName = releaseData['name']
     except:
-        input("An error occured, press enter to exit")
-        exit()
+        if "API rate limit exceeded" not in releaseData['message']:
+            input("An error occured, press enter to exit")
+            exit()
+        print("API rate limit exceeded")
+        APILimit = True
     
-    match = re.fullmatch(r'Release v(\d+)\.(\d+)\.(\d+)', releaseName)
     menuColourVersion = ""
-    if match:
-        try:
-            major, minor, patch = map(int, match.groups())
-            if (major, minor, patch) == softwareVersion:
-                menuColourVersion = colorama.Fore.GREEN
-            elif (major, minor, patch) > softwareVersion:
-                menuColourVersion = colorama.Fore.RED
-        except:
-            pass
+    if not (APILimit or APIDisabled):
+        match = re.fullmatch(r'Release v(\d+)\.(\d+)\.(\d+)', releaseName)
+        if match:
+            try:
+                major, minor, patch = map(int, match.groups())
+                if (major, minor, patch) == softwareVersion:
+                    menuColourVersion = colorama.Fore.GREEN
+                elif (major, minor, patch) > softwareVersion:
+                    menuColourVersion = colorama.Fore.RED
+            except:
+                pass
     
     print(colorama.Style.BRIGHT + "=================================")
     print("||                             ||")
@@ -982,8 +1066,8 @@ def print_main_menu(students=True):
         print("||" + colorama.Style.RESET_ALL + "  \033[9m1) Update student record\033[0m   " + colorama.Style.BRIGHT + "||")
         print("||" + colorama.Style.RESET_ALL + "  \033[9m2) View student record\033[0m     " + colorama.Style.BRIGHT + "||")
     print("||  3) Manage students         ||")
-    if menuColourVersion == "":
-        print(f"||  4) Software Info{colorama.Style.RESET_ALL}{colorama.Style.BRIGHT}           ||")
+    if menuColourVersion == "" or APILimit:
+        print(f"||  4) Software Info{colorama.Style.BRIGHT}           ||")
     else:
         print(f"||  4) " + menuColourVersion + f"Software Info{colorama.Style.RESET_ALL}{colorama.Style.BRIGHT}           ||")
         
@@ -1000,7 +1084,8 @@ if not os.path.exists("setup.json"):
             "database_location": "storage.db",
             "output_folder": "printer",
             "release_URL": "https://api.github.com/repos/LukeNeedle/Attendance-Register/releases/latest",
-            "release_key": ""
+            "release_key": "",
+            "API": True
             }, fp=f, indent=4)
 with open("setup.json", "r") as f:
     globalVariables = json.loads(f.read())
@@ -1014,34 +1099,6 @@ if os.path.exists("Temp/update.txt"):
 else:
     updated = False
 
-def download_desktop_shortcut(softwareVersion, globalVariables):
-    try:
-        if globalVariables['release_key'] == "":
-            headers = {}
-        else:
-            headers = headers = {'Authorization': f'token {globalVariables['release_key']}'}
-        assets  = requests.get(globalVariables['release_URL'], headers=headers).json()['assets']
-    except:
-        input(f"An error occured, press enter to exit (Code: DskSrtCtDwnld1, Version: {softwareVersion})")
-        exit()
-    for asset in assets:
-        if asset['name'] == "desktop_shortcut.exe":
-            try:
-                if globalVariables['release_key'] == "":
-                    headers = {'Accept': "application/octet-stream"}
-                else:
-                    headers = headers = {'Authorization': f"token {globalVariables['release_key']}", 'Accept': "application/octet-stream"}
-                response = requests.get(asset['url'], headers=headers)
-            except:
-                input(f"An error occured, press enter to exit (Code: DskSrtCtDwnld2, Version: {softwareVersion})")
-                exit()
-            if response.status_code == 200 or response.status_code == 302:
-                with open(asset['name'], 'wb') as f:
-                    f.write(response.content)
-                break
-            input(f"An error occured, press enter to exit (Code: DskSrtCtDwnld2, Version: {softwareVersion})")
-            exit()
-
 if updated == True:
     # Delete Old .exe
     with os.scandir() as entries:
@@ -1052,7 +1109,7 @@ if updated == True:
     # This if statment will grow for every major update that changes setup.json or to the database schema.
     # It updates setup.json to fully support the latest update
     
-    # Currently updates to setup v2
+    # Currently updates to setup v3
     
     if 'version' not in globalVariables: # <v2
         with open("setup.json", "w") as f:
@@ -1061,10 +1118,22 @@ if updated == True:
                 "database_location": globalVariables['database_location'],
                 "output_folder": globalVariables['output_folder'],
                 "release_URL": "https://api.github.com/repos/LukeNeedle/Attendance-Register/releases/latest",
-                "release_key": ""
+                "release_key": "",
+                "API": True
                 }, fp=f, indent=4)
     
     elif globalVariables['version'] == 2: # =v2
+        with open("setup.json", "w") as f:
+            json.dump({
+                "version": setupVersion,
+                "database_location": globalVariables['database_location'],
+                "output_folder": globalVariables['output_folder'],
+                "release_URL": globalVariables['release_URL'],
+                "release_key": globalVariables['release_key'],
+                "API": True
+                }, fp=f, indent=4)
+    
+    elif globalVariables['version'] == 3: # =v3
         # Fully updated already
         pass
     
@@ -1092,6 +1161,10 @@ if os.path.exists("static/loadingimage.jpg"):
     print(colorama.Style.RESET_ALL)
     print("\n"*5)
     os.system('cls' if os.name=='nt' else 'clear')
+
+APIDisabled = False
+if globalVariables['API'] == False:
+    APIDisabled = True
 
 mainLoop = True
 
