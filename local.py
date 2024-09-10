@@ -832,6 +832,8 @@ def update_program(softwareVersion):
     if updateRequest.lower() != "y":
         return
 
+    download_desktop_shortcut(softwareVersion, globalVariables)
+    
     os.system('cls' if os.name=='nt' else 'clear')
     print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Do not close the program. The program will close when it is completed.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
     print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}0/4 | Downloading update...{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
@@ -1012,6 +1014,34 @@ if os.path.exists("Temp/update.txt"):
 else:
     updated = False
 
+def download_desktop_shortcut(softwareVersion, globalVariables):
+    try:
+        if globalVariables['release_key'] == "":
+            headers = {}
+        else:
+            headers = headers = {'Authorization': f'token {globalVariables['release_key']}'}
+        assets  = requests.get(globalVariables['release_URL'], headers=headers).json()['assets']
+    except:
+        input(f"An error occured, press enter to exit (Code: DskSrtCtDwnld1, Version: {softwareVersion})")
+        exit()
+    for asset in assets:
+        if asset['name'] == "desktop_shortcut.exe":
+            try:
+                if globalVariables['release_key'] == "":
+                    headers = {'Accept': "application/octet-stream"}
+                else:
+                    headers = headers = {'Authorization': f"token {globalVariables['release_key']}", 'Accept': "application/octet-stream"}
+                response = requests.get(asset['url'], headers=headers)
+            except:
+                input(f"An error occured, press enter to exit (Code: DskSrtCtDwnld2, Version: {softwareVersion})")
+                exit()
+            if response.status_code == 200 or response.status_code == 302:
+                with open(asset['name'], 'wb') as f:
+                    f.write(response.content)
+                break
+            input(f"An error occured, press enter to exit (Code: DskSrtCtDwnld2, Version: {softwareVersion})")
+            exit()
+
 if updated == True:
     # Delete Old .exe
     with os.scandir() as entries:
@@ -1039,32 +1069,7 @@ if updated == True:
         pass
     
     # Downloads latest version of desktop_shortcut.exe
-    try:
-        if globalVariables['release_key'] == "":
-            headers = {}
-        else:
-            headers = headers = {'Authorization': f'token {globalVariables['release_key']}'}
-        assets  = requests.get(globalVariables['release_URL'], headers=headers).json()['assets']
-    except:
-        input(f"An error occured, press enter to exit (Code: DskSrtCtDwnld1, Version: {softwareVersion})")
-        exit()
-    for asset in assets:
-        if asset['name'] == "desktop_shortcut.exe":
-            try:
-                if globalVariables['release_key'] == "":
-                    headers = {'Accept': "application/octet-stream"}
-                else:
-                    headers = headers = {'Authorization': f"token {globalVariables['release_key']}", 'Accept': "application/octet-stream"}
-                response = requests.get(asset['url'], headers=headers)
-            except:
-                input(f"An error occured, press enter to exit (Code: DskSrtCtDwnld2, Version: {softwareVersion})")
-                exit()
-            if response.status_code == 200 or response.status_code == 302:
-                with open(asset['name'], 'wb') as f:
-                    f.write(response.content)
-                break
-            input(f"An error occured, press enter to exit (Code: DskSrtCtDwnld2, Version: {softwareVersion})")
-            exit()
+    download_desktop_shortcut(softwareVersion, globalVariables)
 
     os.remove("Temp/update.txt")
 
