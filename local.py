@@ -1,16 +1,16 @@
+import colorama
+from colr import Colr
+import ctypes
+import datetime
 import sqlite3
 import json
 import os
-import colorama
 from time import sleep
 from tkinter import Tk, Button, Spinbox, StringVar, Label, Frame, messagebox, filedialog
 from tkcalendar import Calendar
-import datetime
 from PIL import Image
-from colr import Colr
 import requests
 import re
-import ctypes
 
 softwareVersion=(2,0,4)
 setupVersion = 3
