@@ -821,9 +821,9 @@ def mainOption_Manage_Delete(globalVariables, studentSelected=None):
     connection.close()
     return True
 
-def update_program(softwareVersion):
-    global APILimit
-    global APIDisabled
+
+def software_information(APILimit, APIDisabled, softwareVersion, latestVersion):
+    updateAvailable = False
     
     if APIDisabled:
         print("API is disabled, please edit your setup.json to enable it.")
@@ -1216,14 +1216,12 @@ while mainLoop:
             print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid option{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
     menuSelection = int(menuSelection)
 
+    os.system('cls' if os.name=='nt' else 'clear')
     if menuSelection == 1:
-        os.system('cls' if os.name=='nt' else 'clear')
-        mainOption_Update()
+        mainOption_Update(globalVariables)
     elif menuSelection == 2:
-        os.system('cls' if os.name=='nt' else 'clear')
-        mainOption_View()
+        mainOption_View(globalVariables)
     elif menuSelection == 3:
-        os.system('cls' if os.name=='nt' else 'clear')
         manageMenuRepeat = True
         print_manage_menu(students)
         while manageMenuRepeat:
@@ -1237,21 +1235,15 @@ while mainLoop:
                 sleep(1)
 
         manageMenuRepeat = int(menuSelection)
-        if manageMenuRepeat == 1:
-            os.system('cls' if os.name=='nt' else 'clear')
-            mainOption_Manage_Create(students)
-        elif manageMenuRepeat == 2:
-            os.system('cls' if os.name=='nt' else 'clear')
-            mainOption_Manage_Edit()
-        elif manageMenuRepeat == 3:
-            os.system('cls' if os.name=='nt' else 'clear')
-            mainOption_Manage_Delete()
-        else:
-            os.system('cls' if os.name=='nt' else 'clear')
-    elif menuSelection == 4:
         os.system('cls' if os.name=='nt' else 'clear')
-        update_program(softwareVersion)
+        if manageMenuRepeat == 1:
+            mainOption_Manage_Create(students, globalVariables)
+        elif manageMenuRepeat == 2:
+            mainOption_Manage_Edit(globalVariables)
+        elif manageMenuRepeat == 3:
+            mainOption_Manage_Delete(globalVariables)
+    elif menuSelection == 4:
+        software_information(APILimit, APIDisabled, softwareVersion, latestVersion)
         os.system('cls' if os.name=='nt' else 'clear')
     else:
-        os.system('cls' if os.name=='nt' else 'clear')
         mainLoop = False
