@@ -43,6 +43,7 @@ def check_for_updates(APILimit, APIDisabled, privateRepo, globalVariables):
             return (0,0,0)
         print("API rate limit exceeded")
         APILimit = True
+        return (0,0,0)
     
     releaseName = releaseData.json()['name']
     
@@ -1227,7 +1228,7 @@ while mainLoop:
         connection.close()
 
     menuRepeat = True
-    print_main_menu(students)
+    print_main_menu(latestVersion, students)
     while menuRepeat:
         menuSelection = input("What would you like to do? ")
         if menuSelection in ["1", "2", "3", "4", "5"] and students:
