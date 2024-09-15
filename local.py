@@ -22,51 +22,91 @@ sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
 sqlite3.register_adapter(datetime.datetime, lambda x: x.isoformat())
 sqlite3.register_converter("TIMESTAMP", lambda x: datetime.datetime.fromisoformat(x.decode()))
 
-def download_desktop_shortcut(softwareVersion, globalVariables):
-    global APILimit
-    global APIDisabled
-    
+def check_for_updates(APILimit, APIDisabled, privateRepo, globalVariables):
     if APIDisabled:
-        print("API is disabled, please edit your setup.json to enable it.")
-        return
+        print("API is disabled, edit your setup.json to enable it.")
+        return (0,0,0)
+    
+    if APILimit:
+        return (0,0,0)
     
     try:
-        if globalVariables['release_key'] == "":
-            headers = {}
-        else:
-            headers = headers = {'Authorization': f'token {globalVariables['release_key']}'}
+        headers = {}
+        if privateRepo:
+            headers = {'Authorization': f'token {globalVariables['release_key']}'}
 
         if not APILimit:
-            assetsData = requests.get(globalVariables['release_URL'], headers=headers).json()
-            assets = assetsData['assets']
+            releaseData = requests.get(globalVariables['release_URL'], headers=headers)
     except:
-        if "API rate limit exceeded" not in assetsData['message']:
-            input("An error occured, press enter to exit")
-            exit()
+        if "API rate limit exceeded" not in releaseData['message']:
+            print(f"An error occured (Code: api_update, Version: {softwareVersion})")
+            return (0,0,0)
         print("API rate limit exceeded")
         APILimit = True
+    
+    releaseName = releaseData.json()['name']
+    
+    match = re.fullmatch(r'Release v(\d+)\.(\d+)\.(\d+)', releaseName)
+    if match:
+        try:
+            major, minor, patch = map(int, match.groups())
+            return (major, minor, patch)
+        except:
+            return (0,0,0)
+    return (0,0,0)
+
+def download_desktop_shortcut(APILimit, APIDisabled, privateRepo, softwareVersion, globalVariables):
+    if APIDisabled:
+        print("API is disabled, edit your setup.json to enable it.")
+        return False
+    
+    if APILimit:
+        print("API limit reached, please try again later.")
+        return False
+    
+    try:
+        headers = {}
+        if privateRepo:
+            headers = {'Authorization': f'token {globalVariables['release_key']}'}
+        assetsData = requests.get(globalVariables['release_URL'], headers=headers).json()
+        assets = assetsData['assets']
+    except:
+        if "API rate limit exceeded" not in assetsData['message']:
+            print("An error occured")
+            return False
+        
+        print("API rate limit exceeded")
+        APILimit = True
+        return False
+    
+    updateURL = ""
+    
     for asset in assets:
         if asset['name'] == "desktop_shortcut.exe":
-            try:
-                if globalVariables['release_key'] == "":
-                    headers = {'Accept': "application/octet-stream"}
-                else:
-                    headers = headers = {'Authorization': f"token {globalVariables['release_key']}", 'Accept': "application/octet-stream"}
-                
-                if not APILimit:
-                    response = requests.get(asset['url'], headers=headers)
-            except:
-                if "API rate limit exceeded" not in response['message']:
-                    input("An error occured, press enter to exit")
-                    exit()
-                print("API rate limit exceeded")
-                APILimit = True
-            if response.status_code == 200 or response.status_code == 302:
-                with open(asset['name'], 'wb') as f:
-                    f.write(response.content)
-                break
-            input(f"An error occured, press enter to exit (Code: DskSrtCtDwnld2, Version: {softwareVersion})")
-            exit()
+            updateURL = asset['url']
+            break
+    
+    try:
+        if not privateRepo:
+            headers = {'Accept': "application/octet-stream"}
+        else:
+            headers = {'Authorization': f"token {globalVariables['release_key']}", 'Accept': "application/octet-stream"}
+        
+        if not APILimit:
+            response = requests.get(updateURL, headers=headers)
+    except:
+        if "API rate limit exceeded" not in response['message']:
+            print("An error occured")
+            return False
+        print("API rate limit exceeded")
+        APILimit = True
+        return False
+    
+    if response.status_code == 200 or response.status_code == 302:
+        with open("desktop_shortcut.exe", 'wb') as f:
+            f.write(response.content)
+    input(f"An error occured, press enter to exit (Code: DskSrtCtDwnld2, Version: {softwareVersion})")
+    exit()
 
 def update_program(APILimit, APIDisabled, privateRepo, globalVariables):
     if APIDisabled:
@@ -1025,37 +1065,14 @@ def print_manage_menu(students=True):
     print("||                             ||")
     print("=================================" + colorama.Style.RESET_ALL)
 
-def print_main_menu(students=True):
-    global APILimit
-    global APIDisabled
-    
-    try:
-        if globalVariables['release_key'] == "":
-            headers = {}
-        else:
-            headers = headers = {'Authorization': f"token {globalVariables['release_key']}"}
-        if not APILimit:
-            releaseData = requests.get(globalVariables['release_URL'], headers=headers).json()
-            releaseName = releaseData['name']
-    except:
-        if "API rate limit exceeded" not in releaseData['message']:
-            input("An error occured, press enter to exit")
-            exit()
-        print("API rate limit exceeded")
-        APILimit = True
-    
+def print_main_menu(latestVersion, students=True):
     menuColourVersion = ""
-    if not (APILimit or APIDisabled):
-        match = re.fullmatch(r'Release v(\d+)\.(\d+)\.(\d+)', releaseName)
-        if match:
-            try:
-                major, minor, patch = map(int, match.groups())
-                if (major, minor, patch) == softwareVersion:
-                    menuColourVersion = colorama.Fore.GREEN
-                elif (major, minor, patch) > softwareVersion:
-                    menuColourVersion = colorama.Fore.RED
-            except:
-                pass
+    if latestVersion == (0,0,0):
+        menuColourVersion = ""
+    elif latestVersion == softwareVersion:
+        menuColourVersion = colorama.Fore.GREEN
+    elif latestVersion > softwareVersion:
+        menuColourVersion = colorama.Fore.RED
     
     print(colorama.Style.BRIGHT + "=================================")
     print("||                             ||")
@@ -1147,9 +1164,11 @@ if updated == True:
         pass
     
     # Downloads latest version of desktop_shortcut.exe
-    download_desktop_shortcut(softwareVersion, globalVariables)
+    download_desktop_shortcut(APILimit, APIDisabled, privateRepo, softwareVersion, globalVariables)
 
     os.remove("Temp/update.txt")
+
+latestVersion = check_for_updates(APILimit, APIDisabled, privateRepo, globalVariables)
 
 colorama.init()
 os.system('cls' if os.name=='nt' else 'clear')
