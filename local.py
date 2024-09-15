@@ -1095,6 +1095,24 @@ def print_main_menu(latestVersion, students=True):
     print("=================================" + colorama.Style.RESET_ALL)
 
 
+def loading_image():
+    print(colorama.Style.BRIGHT)
+    os.system('cls' if os.name=='nt' else 'clear')
+    image = Image.open('static/loadingimage.jpg')
+    pixel_values = image.resize((90, 30)).getdata()
+    for index, character in enumerate(pixel_values):
+        if not isinstance(character, (tuple, list)) or len(character) != 3:
+            continue # Skip this iteration if not three values
+        r, g, b = character
+        if index % 90 == 0:
+            print("")
+        print(Colr().rgb(r, g, b, "\u2584"), end="")
+    sleep(2)
+    print(colorama.Style.RESET_ALL)
+    print("\n"*5)
+    os.system('cls' if os.name=='nt' else 'clear')
+
+
 # Init
 if not os.path.exists("setup.json"):
     with open("setup.json", "w") as f:
@@ -1175,21 +1193,7 @@ colorama.init()
 os.system('cls' if os.name=='nt' else 'clear')
 
 if os.path.exists("static/loadingimage.jpg"):
-    print(colorama.Style.BRIGHT)
-    os.system('cls' if os.name=='nt' else 'clear')
-    image = Image.open('static/loadingimage.jpg')
-    pixel_values = image.resize((90, 30)).getdata()
-    for index, character in enumerate(pixel_values):
-        if not isinstance(character, (tuple, list)) or len(character) != 3:
-            continue # Skip this iteration if not three values
-        r, g, b = character
-        if index % 90 == 0:
-            print("")
-        print(Colr().rgb(r, g, b, "\u2584"), end="")
-    sleep(2)
-    print(colorama.Style.RESET_ALL)
-    print("\n"*5)
-    os.system('cls' if os.name=='nt' else 'clear')
+    loading_image()
 
 mainLoop = True
 
