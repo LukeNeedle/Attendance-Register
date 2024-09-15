@@ -12,7 +12,7 @@ from PIL import Image
 import requests
 import re
 
-softwareVersion=(2,0,4)
+softwareVersion=(2,1,0)
 setupVersion = 3
 APILimit = False
 
