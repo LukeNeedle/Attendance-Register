@@ -1195,8 +1195,8 @@ os.system('cls' if os.name=='nt' else 'clear')
 if os.path.exists("static/loadingimage.jpg"):
     loading_image()
 
+# Main code loop
 mainLoop = True
-
 while mainLoop:
     if os.path.exists(globalVariables['database_location']):
         # Open database
