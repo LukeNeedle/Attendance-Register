@@ -1186,7 +1186,7 @@ if os.path.exists("static/loadingimage.jpg"):
         if index % 90 == 0:
             print("")
         print(Colr().rgb(r, g, b, "\u2584"), end="")
-    sleep(3)
+    sleep(2)
     print(colorama.Style.RESET_ALL)
     print("\n"*5)
     os.system('cls' if os.name=='nt' else 'clear')
