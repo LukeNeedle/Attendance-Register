@@ -1112,6 +1112,14 @@ if os.path.exists("Temp/update.txt"):
 else:
     updated = False
 
+APIDisabled = False
+if globalVariables['API'] == False:
+    APIDisabled = True
+
+privateRepo = False
+if globalVariables['release_key'] != "":
+    privateRepo = True
+
 if updated == True:
     # Delete Old .exe
     with os.scandir() as entries:
@@ -1174,10 +1182,6 @@ if os.path.exists("static/loadingimage.jpg"):
     print(colorama.Style.RESET_ALL)
     print("\n"*5)
     os.system('cls' if os.name=='nt' else 'clear')
-
-APIDisabled = False
-if globalVariables['API'] == False:
-    APIDisabled = True
 
 mainLoop = True
 
