@@ -151,9 +151,8 @@ def requestDate(label):
     Button(root, text="Submit Session", command=get_date).pack(pady=5)
     root.mainloop()
 
-def mainOption_Update(studentSelected=None, dateReceived=None, validSessionDuration=None, validSessionDurationAttended=None):
-    with open("setup.json", "r") as f:
-        globalVariables = json.loads(f.read())
+
+def mainOption_Update(globalVariables, studentSelected=None, dateReceived=None, validSessionDuration=None, validSessionDurationAttended=None):
     connection = sqlite3.connect(globalVariables['database_location'], detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
     cursor = connection.cursor()
     
@@ -217,14 +216,14 @@ def mainOption_Update(studentSelected=None, dateReceived=None, validSessionDurat
             print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter a number between 0 and 23.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
             cursor.close()
             connection.close()
-            return mainOption_Update(studentSelected=studentSelected, dateReceived=dateReceived)
+            return mainOption_Update(globalVariables, studentSelected=studentSelected, dateReceived=dateReceived)
         
         if validSessionDuration <= 0 or validSessionDuration > 24:
             os.system('cls' if os.name=='nt' else 'clear')
             print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter a number between 0 and 23.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
             cursor.close()
             connection.close()
-            return mainOption_Update(studentSelected=studentSelected, dateReceived=dateReceived)
+            return mainOption_Update(globalVariables, studentSelected=studentSelected, dateReceived=dateReceived)
     
     if validSessionDurationAttended == None:
         sessionDurationAttended = input("Session Duration Attended (in Hours): ")
@@ -235,21 +234,21 @@ def mainOption_Update(studentSelected=None, dateReceived=None, validSessionDurat
             print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter a number between 0 and 23 and lower than the session duration ({validSessionDuration}).{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
             cursor.close()
             connection.close()
-            return mainOption_Update(studentSelected=studentSelected, dateReceived=dateReceived, validSessionDuration=validSessionDuration)
+            return mainOption_Update(globalVariables, studentSelected=studentSelected, dateReceived=dateReceived, validSessionDuration=validSessionDuration)
         
         if validSessionDurationAttended < 0 or validSessionDurationAttended > 24:
             os.system('cls' if os.name=='nt' else 'clear')
             print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter a number between 0 and 23 and lower than the session duration ({validSessionDuration}).{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
             cursor.close()
             connection.close()
-            return mainOption_Update(studentSelected=studentSelected, dateReceived=dateReceived, validSessionDuration=validSessionDuration)
+            return mainOption_Update(globalVariables, studentSelected=studentSelected, dateReceived=dateReceived, validSessionDuration=validSessionDuration)
         
         if validSessionDurationAttended > validSessionDuration:
             os.system('cls' if os.name=='nt' else 'clear')
             print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter a number between 0 and 23 and lower than the session duration ({validSessionDuration}).{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
             cursor.close()
             connection.close()
-            return mainOption_Update(studentSelected=studentSelected, dateReceived=dateReceived, validSessionDuration=validSessionDuration)
+            return mainOption_Update(globalVariables, studentSelected=studentSelected, dateReceived=dateReceived, validSessionDuration=validSessionDuration)
     
     print("="*40)
     print("Session Info:")
@@ -280,7 +279,8 @@ def mainOption_Update(studentSelected=None, dateReceived=None, validSessionDurat
     cursor.close()
     connection.close()
 
-def mainOption_View(studentSelected=None):
+
+def mainOption_View(globalVariables, studentSelected=None):
     with open("setup.json", "r") as f:
         globalVariables = json.loads(f.read())
     connection = sqlite3.connect(globalVariables['database_location'], detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
@@ -307,14 +307,14 @@ def mainOption_View(studentSelected=None):
                 print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter an integer.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
                 cursor.close()
                 connection.close()
-                return mainOption_View()
+                return mainOption_View(globalVariables)
             
             if validStudentSelectID < 1 or validStudentSelectID > len(result):
                 os.system('cls' if os.name=='nt' else 'clear')
                 print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter an integer between 1 and {len(result)}{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
                 cursor.close()
                 connection.close()
-                return mainOption_View()
+                return mainOption_View(globalVariables)
 
             studentSelected = result[validStudentSelectID-1]
     
@@ -325,7 +325,7 @@ def mainOption_View(studentSelected=None):
     if menuSelection not in ["1", "2", "3", "4", "5", "6"]:
         print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid option{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
         sleep(1)
-        mainOption_View(studentSelected)
+        mainOption_View(globalVariables, studentSelected)
     
     menuSelection = int(menuSelection)
 
@@ -333,21 +333,19 @@ def mainOption_View(studentSelected=None):
     connection.close()
     os.system('cls' if os.name=='nt' else 'clear')
     if menuSelection == 1:
-        return mainOption_View_Session_Stats(studentSelected[0])
+        return mainOption_View_Session_Stats(studentSelected[0], globalVariables)
     elif menuSelection == 2:
-        return mainOption_View_Session_Stats_Before(studentSelected[0])
+        return mainOption_View_Session_Stats_Before(studentSelected[0], globalVariables)
     elif menuSelection == 3:
-        return mainOption_View_Session_Stats_After(studentSelected[0])
+        return mainOption_View_Session_Stats_After(studentSelected[0], globalVariables)
     elif menuSelection == 4:
-        return mainOption_View_Session_Stats_Between(studentSelected[0])
+        return mainOption_View_Session_Stats_Between(studentSelected[0], globalVariables)
     elif menuSelection == 5:
-        return mainOption_View_Print_Data(studentSelected[0])
+        return mainOption_View_Print_Data(studentSelected[0], globalVariables)
     else:
         return False
 
-def mainOption_View_Session_Stats(studentID):
-    with open("setup.json", "r") as f:
-        globalVariables = json.loads(f.read())
+def mainOption_View_Session_Stats(studentID, globalVariables):
     connection = sqlite3.connect(globalVariables['database_location'], detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
     cursor = connection.cursor()
 
@@ -387,9 +385,7 @@ def mainOption_View_Session_Stats(studentID):
     os.system('cls' if os.name=='nt' else 'clear')
     return True
 
-def mainOption_View_Session_Stats_Before(studentID, dateReceived=None):
-    with open("setup.json", "r") as f:
-        globalVariables = json.loads(f.read())
+def mainOption_View_Session_Stats_Before(studentID, globalVariables, dateReceived=None):
     connection = sqlite3.connect(globalVariables['database_location'], detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
     cursor = connection.cursor()
 
@@ -447,9 +443,7 @@ def mainOption_View_Session_Stats_Before(studentID, dateReceived=None):
     os.system('cls' if os.name=='nt' else 'clear')
     return True
 
-def mainOption_View_Session_Stats_After(studentID, dateReceived=None):
-    with open("setup.json", "r") as f:
-        globalVariables = json.loads(f.read())
+def mainOption_View_Session_Stats_After(studentID, globalVariables, dateReceived=None):
     connection = sqlite3.connect(globalVariables['database_location'], detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
     cursor = connection.cursor()
 
@@ -507,9 +501,7 @@ def mainOption_View_Session_Stats_After(studentID, dateReceived=None):
     os.system('cls' if os.name=='nt' else 'clear')
     return True
 
-def mainOption_View_Session_Stats_Between(studentID, dateReceivedStart=None, dateReceivedEnd=None):
-    with open("setup.json", "r") as f:
-        globalVariables = json.loads(f.read())
+def mainOption_View_Session_Stats_Between(studentID, globalVariables, dateReceivedStart=None, dateReceivedEnd=None):
     connection = sqlite3.connect(globalVariables['database_location'], detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
     cursor = connection.cursor()
 
@@ -584,9 +576,7 @@ def mainOption_View_Session_Stats_Between(studentID, dateReceivedStart=None, dat
     os.system('cls' if os.name=='nt' else 'clear')
     return True
 
-def mainOption_View_Print_Data(studentID):
-    with open("setup.json", "r") as f:
-        globalVariables = json.loads(f.read())
+def mainOption_View_Print_Data(studentID, globalVariables):
     connection = sqlite3.connect(globalVariables['database_location'], detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
     cursor = connection.cursor()
     
@@ -660,9 +650,8 @@ def mainOption_View_Print_Data(studentID):
     cursor.close()
     connection.close() 
 
-def mainOption_Manage_Create(students:bool):
-    with open("setup.json", "r") as f:
-        globalVariables = json.loads(f.read())
+
+def mainOption_Manage_Create(students:bool, globalVariables):
     connection = sqlite3.connect(globalVariables['database_location'], detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
     cursor = connection.cursor()
     
@@ -679,7 +668,7 @@ def mainOption_Manage_Create(students:bool):
         print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Please enter valid initials.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
         cursor.close()
         connection.close()
-        return mainOption_Manage_Create(students)
+        return mainOption_Manage_Create(students, globalVariables)
     
     if students:
         cursor.execute("SELECT StudentID FROM Students WHERE Initials=?;", (initials, ))
@@ -694,7 +683,7 @@ def mainOption_Manage_Create(students:bool):
                 print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}Overwrite aborted.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
                 cursor.close()
                 connection.close()
-                return mainOption_Manage_Create(students)
+                return mainOption_Manage_Create(students, globalVariables)
     
     cursor.execute("INSERT INTO Students(Initials) VALUES (?);", (initials, ))
     connection.commit()
@@ -707,9 +696,7 @@ def mainOption_Manage_Create(students:bool):
     connection.close()
     return True
 
-def mainOption_Manage_Edit(studentSelected=None):
-    with open("setup.json", "r") as f:
-        globalVariables = json.loads(f.read())
+def mainOption_Manage_Edit(globalVariables, studentSelected=None):
     connection = sqlite3.connect(globalVariables['database_location'], detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
     cursor = connection.cursor()
     
@@ -729,14 +716,14 @@ def mainOption_Manage_Edit(studentSelected=None):
             print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter an integer.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
             cursor.close()
             connection.close()
-            return mainOption_Manage_Edit()
+            return mainOption_Manage_Edit(globalVariables)
         
         if validStudentSelectID < 1 or validStudentSelectID > len(result):
             os.system('cls' if os.name=='nt' else 'clear')
             print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter an integer between 1 and {len(result)}{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
             cursor.close()
             connection.close()
-            return mainOption_Manage_Edit()
+            return mainOption_Manage_Edit(globalVariables)
 
         studentSelected = result[validStudentSelectID-1]
     
@@ -752,7 +739,7 @@ def mainOption_Manage_Edit(studentSelected=None):
         print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Please enter valid initials.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
         cursor.close()
         connection.close()
-        return mainOption_Manage_Edit(studentSelected)
+        return mainOption_Manage_Edit(globalVariables, studentSelected)
     
     deleteRequest = "n"
     cursor.execute("SELECT StudentID FROM Students WHERE Initials=?;", (newInitials, ))
@@ -767,7 +754,7 @@ def mainOption_Manage_Edit(studentSelected=None):
             print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}Overwrite aborted.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
             cursor.close()
             connection.close()
-            return mainOption_Manage_Edit(studentSelected)
+            return mainOption_Manage_Edit(globalVariables, studentSelected)
     
     cursor.execute("UPDATE Students SET Initials=? WHERE StudentID=?;", (newInitials, studentSelected[0]))
     connection.commit()
@@ -781,9 +768,7 @@ def mainOption_Manage_Edit(studentSelected=None):
     connection.close()
     return True
 
-def mainOption_Manage_Delete(studentSelected=None):
-    with open("setup.json", "r") as f:
-        globalVariables = json.loads(f.read())
+def mainOption_Manage_Delete(globalVariables, studentSelected=None):
     connection = sqlite3.connect(globalVariables['database_location'], detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
     cursor = connection.cursor()
     
@@ -803,14 +788,14 @@ def mainOption_Manage_Delete(studentSelected=None):
             print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter an integer.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
             cursor.close()
             connection.close()
-            return mainOption_Manage_Delete()
+            return mainOption_Manage_Delete(globalVariables)
         
         if validStudentSelectID < 1 or validStudentSelectID > len(result):
             os.system('cls' if os.name=='nt' else 'clear')
             print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter an integer between 1 and {len(result)}{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
             cursor.close()
             connection.close()
-            return mainOption_Manage_Delete()
+            return mainOption_Manage_Delete(globalVariables)
 
         studentSelected = result[validStudentSelectID-1]
     
