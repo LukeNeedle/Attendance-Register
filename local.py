@@ -68,6 +68,115 @@ def download_desktop_shortcut(softwareVersion, globalVariables):
             input(f"An error occured, press enter to exit (Code: DskSrtCtDwnld2, Version: {softwareVersion})")
             exit()
 
+def update_program(APILimit, APIDisabled, privateRepo, globalVariables):
+    if APIDisabled:
+        print("API is disabled, edit your setup.json to enable it.")
+        return False
+    
+    if APILimit:
+        print("API limit reached, please try again later.")
+        return False
+    
+    major, minor, patch = latestVersion
+    
+    download_desktop_shortcut(APILimit, APIDisabled, privateRepo, softwareVersion, globalVariables)
+    
+    if APILimit:
+        print("API limit reached, please try again later.")
+        return False
+    
+    os.system('cls' if os.name=='nt' else 'clear')
+    print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Do not close the program. The program will close when it is completed.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+    print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}0/4 | Downloading update...{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+    try:
+        headers = {}
+        if privateRepo:
+            headers = headers = {'Authorization': f'token {globalVariables['release_key']}'}
+        assets  = requests.get(globalVariables['release_URL'], headers=headers).json()['assets']
+    except:
+        input("An error occured, press enter to exit")
+        exit()
+    for asset in assets:
+        if asset['name'] == f"Attendance-Register-v{major}.{minor}.{patch}-Public.exe" or asset['name'] == f"Attendance-Register-v{major}.{minor}.{patch}-Internal.exe":
+            try:
+                if not privateRepo:
+                    headers = {'Accept': "application/octet-stream"}
+                else:
+                    headers = headers = {'Authorization': f"token {globalVariables['release_key']}", 'Accept': "application/octet-stream"}
+                response = requests.get(asset['url'], headers=headers)
+            except:
+                input("An error occured, press enter to exit")
+                exit()
+            if response.status_code == 200 or response.status_code == 302:
+                with open(asset['name'], 'wb') as f:
+                    f.write(response.content)
+                print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}1/4 | Successfully downloaded executable file{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+                if not os.path.exists("Temp/"):
+                    os.mkdir("Temp/")
+                with open("Temp/update.txt", "w") as f:
+                    f.write("1")
+                print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}2/4 | Stored temporary files{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+                
+                print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}3/4 | Updating Desktop Shortcut{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+                shortcutPath = os.path.join(os.path.expanduser("~"), "Desktop", "Attendance Register.lnk")
+                if not os.path.exists(shortcutPath):
+                    print(f"{colorama.Fore.RED}An error occured: Desktop cannot be found.")
+                    print(f"Aborting update...{colorama.Fore.RESET}")
+                    os.remove("Temp/update.txt")
+                    sleep(1)
+                    return False
+                
+                workingDirectory = os.getcwd()
+                targetPath = workingDirectory + "\\" + asset['name']
+                iconPath = workingDirectory + "\\Static\\icon.ico"
+                if not os.path.exists(iconPath):
+                    iconPath = ""
+                
+                tempDir = (os.environ.get('TMPDIR') or os.environ.get('TEMP') or os.environ.get('TMP'))
+                
+                if tempDir:
+                    if not os.path.exists(tempDir):
+                        os.mkdir(tempDir)
+                    tempDir += "/Attendance_Register/"
+                
+                if not os.path.exists(tempDir):
+                    os.mkdir(tempDir)
+                
+                if os.path.exists((tempDir + "shortcut_info.json")):
+                    os.remove((tempDir + "shortcut_info.json"))
+                
+                if os.path.exists(shortcutPath):
+                    with open((tempDir + "shortcut_info.json"), "w") as f:
+                        json.dump({
+                            "type": "modify",
+                            "shortcutPath": shortcutPath,
+                            "targetPath": targetPath,
+                            "iconPath": iconPath,
+                            "workingDirectory": workingDirectory
+                            }, fp=f, indent=4)
+                else:
+                    with open((tempDir + "shortcut_info.json"), "w") as f:
+                        json.dump({
+                            "type": "create",
+                            "shortcutPath": shortcutPath,
+                            "targetPath": targetPath,
+                            "iconPath": iconPath,
+                            "workingDirectory": workingDirectory
+                            }, fp=f, indent=4)
+                
+                print("For the desktop shortcut to update, please allow \"desktop_shortcut.exe\" app to make changes to your device")
+                input("The popup will appear when you press enter (it may take a while to appear)")
+                ctypes.windll.shell32.ShellExecuteW(None, "runas", "desktop_shortcut.exe", "", None, 1)
+                while os.path.exists((tempDir + "shortcut_info.json")):
+                    sleep(1)
+                print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}4/4 | Exiting...{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+                sleep(2)
+                exit()
+            print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}1/4 | Failed to downloaded executable file{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+            print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Aborting update...{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+            break
+
+
 def get_date():
     global dateReceived
     
@@ -826,77 +935,57 @@ def software_information(APILimit, APIDisabled, softwareVersion, latestVersion):
     updateAvailable = False
     
     if APIDisabled:
-        print("API is disabled, please edit your setup.json to enable it.")
+        print("API is disabled, edit your setup.json to enable it.")
+    
+    if APILimit:
+        print("API limit reached, please try again later")
     
     validGithubRelease = True
     
-    with open("setup.json", "r") as f:
-        globalVariables = json.loads(f.read())
-    try:
-        if globalVariables['release_key'] == "":
-            headers = {}
-        else:
-            headers = headers = {'Authorization': f"token {globalVariables['release_key']}"}
-        
-        if not APILimit and not APIDisabled:
-            releaseData = requests.get(globalVariables['release_URL'], headers=headers).json()
-            releaseName = releaseData['name']
-        else:
-            validGithubRelease = False
-    except:
-        if "API rate limit exceeded" not in releaseData['message']:
-            input("An error occured, press enter to exit")
-            exit()
-        print("API rate limit exceeded")
-        APILimit = True
+    versionColour = ""
+    updateStatus = ""
+    if latestVersion == (0,0,0):
         validGithubRelease = False
-    
-    if validGithubRelease:
-        match = re.fullmatch(r'Release v(\d+)\.(\d+)\.(\d+)', releaseName)
-        if match:
-            major, minor, patch = map(int, match.groups())
-            validGithubRelease = True
-            if (major, minor, patch) == softwareVersion:
-                version_color = colorama.Fore.GREEN
-                update_status = "- Up to date"
-            elif (major, minor, patch) > softwareVersion:
-                version_color = colorama.Fore.RED
-                update_status = "- Update available"
-            else:
-                version_color = colorama.Fore.LIGHTYELLOW_EX
-                update_status = "Beta"
-        else:
-            validGithubRelease = False
-            version_color = colorama.Fore.RED
-            update_status = "- An error occurred"
-            
-            # os.system('cls' if os.name=='nt' else 'clear')
+        versionColour = colorama.Fore.RED
+    elif latestVersion == softwareVersion:
+        versionColour = colorama.Fore.GREEN
+        updateStatus = "- Up to date"
+    elif latestVersion > softwareVersion:
+        versionColour = colorama.Fore.RED
+        updateStatus = "- Update available"
+        updateAvailable = True
+    else:
+        versionColour = colorama.Fore.LIGHTYELLOW_EX
+        updateStatus = "Beta"
     
     if APILimit:
-        version_color = colorama.Fore.RED
-        update_status = "- API limit reached"
+        versionColour = colorama.Fore.RED
+        updateStatus = "- API limit reached"
         validGithubRelease = False
     
     if APIDisabled:
-        version_color = ""
-        update_status = "- API disabled"
+        versionColour = ""
+        updateStatus = "- API disabled"
         validGithubRelease = False
+    
+    major, minor, patch = latestVersion
     
     print(colorama.Style.BRIGHT + "==========================================================")
     print("||                                                      ||")
     print("||                 Software Information                 ||")
-    print(f"||    Current version: {version_color}v{softwareVersion[0]}.{softwareVersion[1]}.{softwareVersion[2]} {update_status}{colorama.Style.RESET_ALL}{colorama.Style.BRIGHT}".ljust(69) + "||")
+    print(f"||    Current version: {versionColour}v{softwareVersion[0]}.{softwareVersion[1]}.{softwareVersion[2]} {updateStatus}{colorama.Style.RESET_ALL}{colorama.Style.BRIGHT}".ljust(69) + "||")
     if validGithubRelease:
         print(f"||    Latest version: {colorama.Fore.GREEN}v{major}.{minor}.{patch}{colorama.Style.RESET_ALL}{colorama.Style.BRIGHT}".ljust(69) + "||")
     if not validGithubRelease:
         print(f"||    Latest version: {colorama.Fore.RED}Error connecting to server{colorama.Style.RESET_ALL}".ljust(65) + f"{colorama.Style.BRIGHT}||")
     print("||                                                      ||")
     print("==========================================================" + colorama.Style.RESET_ALL)
-        
-    if (not (validGithubRelease and (major, minor, patch) > softwareVersion) or APIDisabled):
+    
+    if not (updateAvailable and validGithubRelease):
         input("Press enter to continue")
         os.system('cls' if os.name=='nt' else 'clear')
         return
+    
     if major != softwareVersion[0]:
         print("The latest update has indicated that there has been a major change to it's underlying code which may cause issues,")
         print("we will try to resolve these issues when the program next starts.")
@@ -904,94 +993,8 @@ def software_information(APILimit, APIDisabled, softwareVersion, latestVersion):
     updateRequest = input(f"Would you like to {colorama.Fore.GREEN + colorama.Style.BRIGHT}update{colorama.Fore.RESET + colorama.Style.RESET_ALL} ({colorama.Style.BRIGHT}y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}): ")
     if updateRequest.lower() != "y":
         return
-
-    download_desktop_shortcut(softwareVersion, globalVariables)
     
-    os.system('cls' if os.name=='nt' else 'clear')
-    print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Do not close the program. The program will close when it is completed.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-    print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}0/4 | Downloading update...{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-    try:
-        if globalVariables['release_key'] == "":
-            headers = {}
-        else:
-            headers = headers = {'Authorization': f'token {globalVariables['release_key']}'}
-        assets  = requests.get(globalVariables['release_URL'], headers=headers).json()['assets']
-    except:
-        input("An error occured, press enter to exit")
-        exit()
-    for asset in assets:
-        if asset['name'] == f"Attendance-Register-v{major}.{minor}.{patch}-Public.exe" or asset['name'] == f"Attendance-Register-v{major}.{minor}.{patch}-Internal.exe":
-            try:
-                if globalVariables['release_key'] == "":
-                    headers = {'Accept': "application/octet-stream"}
-                else:
-                    headers = headers = {'Authorization': f"token {globalVariables['release_key']}", 'Accept': "application/octet-stream"}
-                response = requests.get(asset['url'], headers=headers)
-            except:
-                input("An error occured, press enter to exit")
-                exit()
-            if response.status_code == 200 or response.status_code == 302:
-                with open(asset['name'], 'wb') as f:
-                    f.write(response.content)
-                print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}1/4 | Successfully downloaded executable file{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-                if not os.path.exists("Temp/"):
-                    os.mkdir("Temp/")
-                with open("Temp/update.txt", "w") as f:
-                    f.write("1")
-                print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}2/4 | Stored temporary files{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-                
-                print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}3/4 | Updating Desktop Shortcut{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-                shortcutPath = os.path.join(os.path.expanduser("~"), "Desktop", "Attendance Register.lnk")
-                workingDirectory = os.getcwd()
-                targetPath = workingDirectory + "\\" + asset['name']
-                iconPath = workingDirectory + "\\Static\\icon.ico"
-                if not os.path.exists(iconPath):
-                    iconPath = ""
-                
-                tempDir = (os.environ.get('TMPDIR') or os.environ.get('TEMP') or os.environ.get('TMP'))
-                
-                if tempDir:
-                    if not os.path.exists(tempDir):
-                        os.mkdir(tempDir)
-                    tempDir += "/Attendance_Register/"
-                
-                if not os.path.exists(tempDir):
-                    os.mkdir(tempDir)
-                
-                if os.path.exists((tempDir + "shortcut_info.json")):
-                    os.remove((tempDir + "shortcut_info.json"))
-                
-                if os.path.exists(shortcutPath):
-                    with open((tempDir + "shortcut_info.json"), "w") as f:
-                        json.dump({
-                            "type": "modify",
-                            "shortcutPath": shortcutPath,
-                            "targetPath": targetPath,
-                            "iconPath": iconPath,
-                            "workingDirectory": workingDirectory
-                            }, fp=f, indent=4)
-                else:
-                    with open((tempDir + "shortcut_info.json"), "w") as f:
-                        json.dump({
-                            "type": "create",
-                            "shortcutPath": shortcutPath,
-                            "targetPath": targetPath,
-                            "iconPath": iconPath,
-                            "workingDirectory": workingDirectory
-                            }, fp=f, indent=4)
-                
-                print("For the desktop shortcut to update, please allow \"desktop_shortcut.exe\" app to make changes to your device")
-                input("The popup will appear when you press enter (it may take a while to appear)")
-                ctypes.windll.shell32.ShellExecuteW(None, "runas", "desktop_shortcut.exe", "", None, 1)
-                while os.path.exists((tempDir + "shortcut_info.json")):
-                    sleep(1)
-                print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}4/4 | Exiting...{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-                sleep(2)
-                exit()
-            print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}1/4 | Failed to downloaded executable file{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-            print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Aborting update...{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-            break
-
+    update_program(APILimit, APIDisabled, privateRepo)
 
 
 def print_view_menu():
