@@ -2,7 +2,7 @@
  A simple system for recording attendance.
 
 > [!CAUTION]
-> The program is only written for one person to use at the same time. If multiple users try to use it at the same time side effects may occure including the database becoming corrupted or the programs crashing.
+> The program is only written for one person to use a time. If multiple users try to use it at the same time side effects may occure including data loss or the program(s) crashing.
 
 ## Customisation
 ### Splashscreen
