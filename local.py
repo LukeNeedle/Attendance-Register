@@ -1030,6 +1030,7 @@ def software_information(APILimit, APIDisabled, softwareVersion, latestVersion):
     if major != softwareVersion[0]:
         print("The latest update has indicated that there has been a major change to it's underlying code which may cause issues,")
         print("we will try to resolve these issues when the program next starts.")
+        print("If you have any questions, concerns or you need help updating, please contact your software distributor.")
     
     updateRequest = input(f"Would you like to {colorama.Fore.GREEN + colorama.Style.BRIGHT}update{colorama.Fore.RESET + colorama.Style.RESET_ALL} ({colorama.Style.BRIGHT}y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}): ")
     if updateRequest.lower() != "y":
