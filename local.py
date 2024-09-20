@@ -1046,7 +1046,24 @@ def software_information(APILimit, APIDisabled, softwareVersion, latestVersion):
     if updateRequest.lower() != "y":
         return True
     
-    update_program(APILimit, APIDisabled, privateRepo)
+    if update_program(APILimit, APIDisabled, privateRepo, globalVariables):
+        print("Updated successfully!")
+        input("Press enter to restart.")
+        major, minor, patch = latestVersion
+        executableName = f"Attendance-Register-v{major}.{minor}.{patch}-"
+        if privateRepo:
+            executableName += "Internal.exe"
+        else:
+            executableName += "Public.exe"
+        if os.path.exists(executableName):
+            executablePath = os.getcwd() + "\\" + executableName
+            os.system(f"start cmd.exe /C {executablePath}")
+        else:
+            print("An error occured, please restart manually.")
+        return True
+    else:
+        print("Update failed. Please try again later.")
+        return False
 
 
 def print_view_menu():
