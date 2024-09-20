@@ -48,13 +48,14 @@ def check_for_updates(APILimit, APIDisabled, privateRepo, globalVariables):
     releaseName = releaseData.json()['name']
     
     match = re.fullmatch(r'Release v(\d+)\.(\d+)\.(\d+)', releaseName)
-    if match:
-        try:
-            major, minor, patch = map(int, match.groups())
-            return (major, minor, patch)
-        except:
-            return (0,0,0)
-    return (0,0,0)
+    if not match:
+        return (0,0,0)
+
+    try:
+        major, minor, patch = map(int, match.groups())
+        return (major, minor, patch)
+    except:
+        return (0,0,0)
 
 def download_desktop_shortcut(APILimit, APIDisabled, privateRepo, softwareVersion, globalVariables):
     if APIDisabled:
@@ -106,8 +107,10 @@ def download_desktop_shortcut(APILimit, APIDisabled, privateRepo, softwareVersio
     if response.status_code == 200 or response.status_code == 302:
         with open("desktop_shortcut.exe", 'wb') as f:
             f.write(response.content)
+        return True
+    
     input(f"An error occured, press enter to exit (Code: DskSrtCtDwnld2, Version: {softwareVersion})")
-    exit()
+    return False
 
 def update_program(APILimit, APIDisabled, privateRepo, globalVariables):
     if APIDisabled:
@@ -120,7 +123,9 @@ def update_program(APILimit, APIDisabled, privateRepo, globalVariables):
     
     major, minor, patch = latestVersion
     
-    download_desktop_shortcut(APILimit, APIDisabled, privateRepo, softwareVersion, globalVariables)
+    if not download_desktop_shortcut(APILimit, APIDisabled, privateRepo, softwareVersion, globalVariables):
+        print("Failed to download desktop shortcut.")
+        return False
     
     if APILimit:
         print("API limit reached, please try again later.")
@@ -135,87 +140,92 @@ def update_program(APILimit, APIDisabled, privateRepo, globalVariables):
             headers = headers = {'Authorization': f'token {globalVariables['release_key']}'}
         assets  = requests.get(globalVariables['release_URL'], headers=headers).json()['assets']
     except:
-        input("An error occured, press enter to exit")
-        exit()
+        input("An error occured, press enter to continue")
+        return False
+    
+    assetURL = ""
+    assetName = ""
     for asset in assets:
         if asset['name'] == f"Attendance-Register-v{major}.{minor}.{patch}-Public.exe" or asset['name'] == f"Attendance-Register-v{major}.{minor}.{patch}-Internal.exe":
-            try:
-                if not privateRepo:
-                    headers = {'Accept': "application/octet-stream"}
-                else:
-                    headers = headers = {'Authorization': f"token {globalVariables['release_key']}", 'Accept': "application/octet-stream"}
-                response = requests.get(asset['url'], headers=headers)
-            except:
-                input("An error occured, press enter to exit")
-                exit()
-            if response.status_code == 200 or response.status_code == 302:
-                with open(asset['name'], 'wb') as f:
-                    f.write(response.content)
-                print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}1/4 | Successfully downloaded executable file{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-                if not os.path.exists("Temp/"):
-                    os.mkdir("Temp/")
-                with open("Temp/update.txt", "w") as f:
-                    f.write("1")
-                print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}2/4 | Stored temporary files{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-                
-                print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}3/4 | Updating Desktop Shortcut{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-                shortcutPath = os.path.join(os.path.expanduser("~"), "Desktop", "Attendance Register.lnk")
-                if not os.path.exists(shortcutPath):
-                    print(f"{colorama.Fore.RED}An error occured: Desktop cannot be found.")
-                    print(f"Aborting update...{colorama.Fore.RESET}")
-                    os.remove("Temp/update.txt")
-                    sleep(1)
-                    return False
-                
-                workingDirectory = os.getcwd()
-                targetPath = workingDirectory + "\\" + asset['name']
-                iconPath = workingDirectory + "\\Static\\icon.ico"
-                if not os.path.exists(iconPath):
-                    iconPath = ""
-                
-                tempDir = (os.environ.get('TMPDIR') or os.environ.get('TEMP') or os.environ.get('TMP'))
-                
-                if tempDir:
-                    if not os.path.exists(tempDir):
-                        os.mkdir(tempDir)
-                    tempDir += "/Attendance_Register/"
-                
-                if not os.path.exists(tempDir):
-                    os.mkdir(tempDir)
-                
-                if os.path.exists((tempDir + "shortcut_info.json")):
-                    os.remove((tempDir + "shortcut_info.json"))
-                
-                if os.path.exists(shortcutPath):
-                    with open((tempDir + "shortcut_info.json"), "w") as f:
-                        json.dump({
-                            "type": "modify",
-                            "shortcutPath": shortcutPath,
-                            "targetPath": targetPath,
-                            "iconPath": iconPath,
-                            "workingDirectory": workingDirectory
-                            }, fp=f, indent=4)
-                else:
-                    with open((tempDir + "shortcut_info.json"), "w") as f:
-                        json.dump({
-                            "type": "create",
-                            "shortcutPath": shortcutPath,
-                            "targetPath": targetPath,
-                            "iconPath": iconPath,
-                            "workingDirectory": workingDirectory
-                            }, fp=f, indent=4)
-                
-                print("For the desktop shortcut to update, please allow \"desktop_shortcut.exe\" app to make changes to your device")
-                input("The popup will appear when you press enter (it may take a while to appear)")
-                ctypes.windll.shell32.ShellExecuteW(None, "runas", "desktop_shortcut.exe", "", None, 1)
-                while os.path.exists((tempDir + "shortcut_info.json")):
-                    sleep(1)
-                print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}4/4 | Exiting...{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-                sleep(2)
-                exit()
-            print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}1/4 | Failed to downloaded executable file{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-            print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Aborting update...{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+            assetURL = asset['url']
+            assetName = asset['name']
             break
+    try:
+        if not privateRepo:
+            headers = {'Accept': "application/octet-stream"}
+        else:
+            headers = headers = {'Authorization': f"token {globalVariables['release_key']}", 'Accept': "application/octet-stream"}
+        response = requests.get(assetURL, headers=headers)
+    except:
+        input("An error occured, press enter to continue")
+        return False
+    if response.status_code == 200 or response.status_code == 302:
+        with open(assetName, 'wb') as f:
+            f.write(response.content)
+        print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}1/4 | Successfully downloaded executable file{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+        if not os.path.exists("Temp/"):
+            os.mkdir("Temp/")
+        with open("Temp/update.txt", "w") as f:
+            f.write("1")
+        print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}2/4 | Stored temporary files{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+        
+        print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}3/4 | Updating Desktop Shortcut{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+        shortcutPath = os.path.join(os.path.expanduser("~"), "Desktop", "Attendance Register.lnk")
+        if not os.path.exists(shortcutPath):
+            print(f"{colorama.Fore.RED}An error occured: Desktop cannot be found.")
+            print(f"Aborting update...{colorama.Fore.RESET}")
+            os.remove("Temp/update.txt")
+            sleep(1)
+            return False
+        
+        workingDirectory = os.getcwd()
+        targetPath = workingDirectory + "\\" + assetName
+        iconPath = workingDirectory + "\\Static\\icon.ico"
+        if not os.path.exists(iconPath):
+            iconPath = ""
+        
+        tempDir = (os.environ.get('TMPDIR') or os.environ.get('TEMP') or os.environ.get('TMP'))
+        
+        if tempDir:
+            if not os.path.exists(tempDir):
+                os.mkdir(tempDir)
+            tempDir += "/Attendance_Register/"
+        
+        if not os.path.exists(tempDir):
+            os.mkdir(tempDir)
+        
+        if os.path.exists((tempDir + "shortcut_info.json")):
+            os.remove((tempDir + "shortcut_info.json"))
+        
+        if os.path.exists(shortcutPath):
+            with open((tempDir + "shortcut_info.json"), "w") as f:
+                json.dump({
+                    "type": "modify",
+                    "shortcutPath": shortcutPath,
+                    "targetPath": targetPath,
+                    "iconPath": iconPath,
+                    "workingDirectory": workingDirectory
+                    }, fp=f, indent=4)
+        else:
+            with open((tempDir + "shortcut_info.json"), "w") as f:
+                json.dump({
+                    "type": "create",
+                    "shortcutPath": shortcutPath,
+                    "targetPath": targetPath,
+                    "iconPath": iconPath,
+                    "workingDirectory": workingDirectory
+                    }, fp=f, indent=4)
+        
+        print("For the desktop shortcut to update, please allow \"desktop_shortcut.exe\" app to make changes to your device")
+        input("The popup will appear when you press enter (it may take a while to appear)")
+        ctypes.windll.shell32.ShellExecuteW(None, "runas", "desktop_shortcut.exe", "", None, 1)
+        while os.path.exists((tempDir + "shortcut_info.json")):
+            sleep(1)
+        print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}4/4 | Restarting...{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+        sleep(2)
+        return True
+    print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}1/4 | Failed to downloaded executable file{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
+    print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Aborting update...{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
 
 
 def get_date():
@@ -982,7 +992,7 @@ def software_information(APILimit, APIDisabled, softwareVersion, latestVersion):
         print("API limit reached, please try again later")
     
     validGithubRelease = True
-    
+
     versionColour = ""
     updateStatus = ""
     if latestVersion == (0,0,0):
@@ -1025,7 +1035,7 @@ def software_information(APILimit, APIDisabled, softwareVersion, latestVersion):
     if not (updateAvailable and validGithubRelease):
         input("Press enter to continue")
         os.system('cls' if os.name=='nt' else 'clear')
-        return
+        return True
     
     if major != softwareVersion[0]:
         print("The latest update has indicated that there has been a major change to it's underlying code which may cause issues,")
@@ -1034,7 +1044,7 @@ def software_information(APILimit, APIDisabled, softwareVersion, latestVersion):
     
     updateRequest = input(f"Would you like to {colorama.Fore.GREEN + colorama.Style.BRIGHT}update{colorama.Fore.RESET + colorama.Style.RESET_ALL} ({colorama.Style.BRIGHT}y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}): ")
     if updateRequest.lower() != "y":
-        return
+        return True
     
     update_program(APILimit, APIDisabled, privateRepo)
 
@@ -1271,7 +1281,10 @@ while mainLoop:
         elif manageMenuRepeat == 3:
             mainOption_Manage_Delete(globalVariables)
     elif menuSelection == 4:
-        software_information(APILimit, APIDisabled, softwareVersion, latestVersion)
+        if software_information(APILimit, APIDisabled, softwareVersion, latestVersion):
+            mainLoop = False
+        else:
+            APILimit = True
         os.system('cls' if os.name=='nt' else 'clear')
     else:
         mainLoop = False
