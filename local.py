@@ -337,14 +337,14 @@ def mainOption_Update(globalVariables, studentSelected=None, dateReceived=None, 
                 print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter an integer.{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
                 cursor.close()
                 connection.close()
-                return mainOption_View()
+                return mainOption_Update(globalVariables)
             
             if validStudentSelectID < 1 or validStudentSelectID > len(result):
                 os.system('cls' if os.name=='nt' else 'clear')
                 print(f"{colorama.Fore.RED + colorama.Style.BRIGHT}Invalid input. Please enter an integer between 1 and {len(result)}{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
                 cursor.close()
                 connection.close()
-                return mainOption_View()
+                return mainOption_Update(globalVariables)
 
             studentSelected = result[validStudentSelectID-1]
     
