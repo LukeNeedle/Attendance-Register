@@ -1035,7 +1035,7 @@ def software_information(APILimit, APIDisabled, softwareVersion, latestVersion):
     if not (updateAvailable and validGithubRelease):
         input("Press enter to continue")
         os.system('cls' if os.name=='nt' else 'clear')
-        return True
+        return False
     
     if major != softwareVersion[0]:
         print("The latest update has indicated that there has been a major change to it's underlying code which may cause issues,")
@@ -1044,7 +1044,7 @@ def software_information(APILimit, APIDisabled, softwareVersion, latestVersion):
     
     updateRequest = input(f"Would you like to {colorama.Fore.GREEN + colorama.Style.BRIGHT}update{colorama.Fore.RESET + colorama.Style.RESET_ALL} ({colorama.Style.BRIGHT}y{colorama.Style.RESET_ALL}/{colorama.Style.BRIGHT}N{colorama.Style.RESET_ALL}): ")
     if updateRequest.lower() != "y":
-        return True
+        return False
     
     if update_program(APILimit, APIDisabled, privateRepo, globalVariables):
         print("Updated successfully!")
@@ -1300,8 +1300,6 @@ while mainLoop:
     elif menuSelection == 4:
         if software_information(APILimit, APIDisabled, softwareVersion, latestVersion):
             mainLoop = False
-        else:
-            APILimit = True
         os.system('cls' if os.name=='nt' else 'clear')
     else:
         mainLoop = False
