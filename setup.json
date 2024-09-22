@@ -1,5 +1,5 @@
 {
-    "version": 2,
+    "version": 3,
     "database_location": "storage.db",
     "output_folder": "printer",
     "release_URL": "https://api.github.com/repos/LukeNeedle/Attendance-Register/releases/latest",
