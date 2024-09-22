@@ -1164,15 +1164,7 @@ if os.path.exists("Temp/update.txt"):
 else:
     updated = False
 
-APIDisabled = False
-if globalVariables['API'] == False:
-    APIDisabled = True
-
-privateRepo = False
-if globalVariables['release_key'] != "":
-    privateRepo = True
-
-if updated == True:
+if updated:
     # Delete Old .exe
     with os.scandir() as entries:
         for entry in entries:
@@ -1210,10 +1202,24 @@ if updated == True:
         # Fully updated already
         pass
     
+    # Reload global variables
+    with open("setup.json", "r") as f:
+        globalVariables = json.loads(f.read())
+    
+    os.remove("Temp/update.txt")
+
+
+APIDisabled = False
+if globalVariables['API'] == False:
+    APIDisabled = True
+
+privateRepo = False
+if globalVariables['release_key'] != "":
+    privateRepo = True
+
+if updated:
     # Downloads latest version of desktop_shortcut.exe
     download_desktop_shortcut(APILimit, APIDisabled, privateRepo, softwareVersion, globalVariables)
-
-    os.remove("Temp/update.txt")
 
 latestVersion = check_for_updates(APILimit, APIDisabled, privateRepo, globalVariables)
 
