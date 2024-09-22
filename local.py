@@ -170,8 +170,9 @@ def update_program(APILimit, APIDisabled, privateRepo, globalVariables):
         print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}2/4 | Stored temporary files{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
         
         print(f"{colorama.Fore.GREEN + colorama.Style.BRIGHT}3/4 | Updating Desktop Shortcut{colorama.Fore.RESET + colorama.Style.RESET_ALL}")
-        shortcutPath = os.path.join(os.path.expanduser("~"), "Desktop", "Attendance Register.lnk")
-        if not os.path.exists(shortcutPath):
+        desktopPath = os.path.join(os.path.expanduser("~"), "Desktop")
+        shortcutPath = os.path.join(desktopPath, "Attendance Register.lnk")
+        if not os.path.exists(desktopPath):
             print(f"{colorama.Fore.RED}An error occured: Desktop cannot be found.")
             print(f"Aborting update...{colorama.Fore.RESET}")
             os.remove("Temp/update.txt")
