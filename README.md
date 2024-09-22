@@ -13,8 +13,8 @@ To add a custom splashscreen that appears as the program loads, save the image i
 > Support for different aspect ratios in setup.json is not currently implimented but may be introduced in the future.
 > If you require a different aspect ration, you must edit the source code to support it.
 > The lines you must edit are:
-> - 809: pixel_values = image.resize((90, 30)).getdata() # Change (90,30) to (width of the image according to your aspect ratio, the number of lines the console window will display (30 is good))
-> - 814: if index % 90 == 0: # Change 90 to the width of the image chosen above
+> - 1130: pixel_values = image.resize((90, 30)).getdata() # Change (90,30) to (width of the image according to your aspect ratio, the number of lines the console window will display (30 is good))
+> - 1135: if index % 90 == 0: # Change 90 to the width of the image chosen above
 
 > [!Important]
 > The static folder must be stored in the same folder as the executable file as the spashscreen image isn't stored in the executable.
