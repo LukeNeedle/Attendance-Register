@@ -12,8 +12,7 @@ from PIL import Image
 import requests
 import re
 
-softwareVersion=(2,1,0)
-setupVersion = 3
+softwareVersion=(3,0,0)
 APILimit = False
 
 sqlite3.register_adapter(bool, int)
@@ -1146,7 +1145,7 @@ def loading_image():
 if not os.path.exists("setup.json"):
     with open("setup.json", "w") as f:
         json.dump({
-            "version": setupVersion,
+            "version": softwareVersion[0],
             "database_location": "storage.db",
             "output_folder": "printer",
             "release_URL": "https://api.github.com/repos/LukeNeedle/Attendance-Register/releases/latest",
@@ -1180,7 +1179,7 @@ if updated:
     if 'version' not in globalVariables: # <v2
         with open("setup.json", "w") as f:
             json.dump({
-                "version": setupVersion,
+                "version": softwareVersion[0],
                 "database_location": globalVariables['database_location'],
                 "output_folder": globalVariables['output_folder'],
                 "release_URL": "https://api.github.com/repos/LukeNeedle/Attendance-Register/releases/latest",
@@ -1191,7 +1190,7 @@ if updated:
     elif globalVariables['version'] == 2: # =v2
         with open("setup.json", "w") as f:
             json.dump({
-                "version": setupVersion,
+                "version": softwareVersion[0],
                 "database_location": globalVariables['database_location'],
                 "output_folder": globalVariables['output_folder'],
                 "release_URL": globalVariables['release_URL'],
